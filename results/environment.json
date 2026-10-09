@@ -1,0 +1,35 @@
+{
+  "python": "3.12.3 (v3.12.3:f6650f9ad7, Apr  9 2024, 08:18:47) [Clang 13.0.0 (clang-1300.0.29.30)]",
+  "executable": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/.venv/bin/python",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "processor": "arm",
+  "cpu_count": 8,
+  "pythonhashseed": "0",
+  "packages": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "matplotlib": "3.11.2",
+    "torch": "2.14.1",
+    "qiskit": "2.5.2",
+    "qiskit-machine-learning": "0.9.1",
+    "pytest": "9.1.1"
+  },
+  "status": "passed",
+  "checks": [
+    "configuration",
+    "scientific imports",
+    "V2 estimator/QNN/connector/gradient imports",
+    "API signatures",
+    "CPU autograd",
+    "repeatable RNG",
+    "headless plotting"
+  ],
+  "torch_device": "cpu",
+  "cuda_available": false,
+  "mps_available": false,
+  "torch_threads": 4,
+  "simulator": "planned local StatevectorEstimator, precision=0",
+  "quantum_execution_tested": false,
+  "full_qnn_gradient_compatibility": "Not evaluated; Phase 4"
+}

@@ -1,0 +1,115 @@
+# Experimental methodology
+
+**Approved survey title: Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
+
+This experiment is a focused extension of the existing survey of 25 previously selected papers (15 reviewed at mid-evaluation). It does not replace the literature review. Phase 1 specifies the experiment; no dataset or model has been implemented yet.
+
+## Objective and hypotheses
+
+Compare a small classical DDPM with a hybrid DDPM that replaces only a four-dimensional bottleneck with a trainable four-qubit circuit. Assess marginal generation quality, temporal correlation, simulation cost, and limited-data behavior. Hypotheses: (H1) the hybrid can learn a useful denoiser; (H2) its generation/ACF errors may differ from the baseline; (H3) the difference may depend on training-set size. These are empirical questions, not assumed improvements. Three repetitions permit descriptive variability estimates, not strong significance claims.
+
+## Dataset and persistence plan (Phase 2)
+
+For each of exactly 1,400 sequences, independently draw
+
+\[
+x(t)=A\sin(2\pi ft+\phi)+B\sin(4\pi ft+\psi)+\epsilon(t).
+\]
+
+| Quantity | Distribution |
+|---|---|
+| A | Uniform[0.6,1.2] |
+| f | Uniform[1.0,3.0] cycles/window |
+| phi, psi | independent Uniform[0,2pi] |
+| B | Uniform[0.0,0.3] |
+| epsilon(t) | independent Normal(0,0.05²) |
+| t | arange(32)/32, over [0,1), endpoint=False |
+
+Shape is (1400,32), each sequence (32,). Use NumPy Generator seed 2026 for synthesis and a separate seed 2027 for a permutation split: first 1,000 train, next 200 validation, last 200 held-out reference. Save raw sequences, time grid, per-sequence A/f/phi/B/psi, split indices, equation, distribution parameters, seeds, package versions, dtype, file hashes and summary statistics. Saving raw sequences preserves observation-noise realizations; exact regeneration also requires the recorded software environment.
+
+For repetition seed 11, 22 or 33, permute only the 1,000 training indices once; take prefixes of length 100, 250, 500 and 1,000. This ensures nested subsets within each repetition, identical subsets between models, and fixed validation/test sets across all runs. Never reshuffle validation/test membership. Use independent RNG streams for subset selection, model initialization, training noise/timesteps, validation noise/timesteps and reverse sampling.
+
+Fit a single scalar mean and population standard deviation (ddof=0) across all entries of the selected training subset. Apply (x-mu)/sigma to its training data, fixed validation and fixed test sequences. Save mu/sigma per repetition/fraction and reuse across models; reject non-finite or near-zero sigma. Thus the 100-sample condition uses no information from the other 900 training sequences. Inverse-transform generated sequences before computing physical-scale metrics. The raw reference remains fixed; transformed validation/test values can differ across fractions because the training-only transform differs.
+
+Phase 2 will plot the first six entries of a fixed held-out-index order (no visual cherry-picking), a pooled-value histogram and their individual ACFs; report mean, population std, min, max and shape. Report training-only normalization statistics separately from descriptive full-dataset summaries.
+
+## Shared architecture specification (Phases 3–5)
+
+Tensor notation B is batch size. Timestep encoding is a learned Embedding(20,16); code index 0 represents mathematical diffusion time 1, and index 19 represents time 20.
+
+1. Concatenate noisy sequence (B,32) and timestep embedding (B,16), yielding (B,48).
+2. Encoder: Linear(48,16), SiLU, Linear(16,4), yielding features h of shape (B,4).
+3. Baseline bottleneck: Linear(4,4), Tanh, yielding (B,4).
+4. Hybrid bottleneck: the four-qubit layer below, yielding (B,4).
+5. Shared decoder: Linear(4,16), SiLU, Linear(16,32), yielding predicted Gaussian noise (B,32). No output bounding, as target noise is unbounded.
+
+The classical affine bottleneck is a normal trainable nonlinear layer. The common four-dimensional bottleneck is restrictive for both models and is a threat to fidelity. Pair identical encoder/decoder/embedding initial state dicts between models, rather than relying on the same global seed with different constructor RNG consumption.
+
+Analytical parameter counts (to verify against instantiated models later): embedding 320, encoder 784+68, decoder 80+544, shared total 1,796. Baseline bottleneck has 20 weights/biases, total 1,816. Quantum bottleneck has 16 trainable weights, total 1,812. Similar surrounding architectures are not evidence of matched capacity. An optional third control, if feasible in Phase 5, is a bias-free Linear(4,4)+Tanh bottleneck (16 weights, total 1,812); parameter-count matching does not imply equal expressiveness.
+
+## Quantum circuit specification (Phase 4)
+
+Use exactly four qubits initialized to |0000>. Bound each input differentiably as angle_i = pi*tanh(h_i), then apply RY(angle_i) to qubit i. There are four distinct input parameters.
+
+In each of two layers apply RY(theta[layer,i,0]) followed by RX(theta[layer,i,1]) on every qubit, then CX(0,1), CX(1,2), CX(2,3) in that order. Total trainable parameters: 2*4*2 = 16. RX is chosen for the second rotation so the final rotation is not an RZ directly before commuting Z measurements. This design does not guarantee every parameter has a nonzero gradient at every state.
+
+Measure four separate local Z expectation values in qubit order 0,1,2,3, not one global ZZZZ observable. Qiskit Pauli labels are little-endian: observables in this order are IIIZ, IIZI, IZII, ZIII. Expectation outputs lie in [-1,1]. Build gates directly, avoiding deprecated circuit-library convenience classes.
+
+Planned APIs: explicitly supplied V2 StatevectorEstimator(default_precision=0, seed=run_seed); EstimatorQNN(default_precision=0, input_gradients=True); explicit ParamShiftEstimatorGradient using the same exact estimator; TorchConnector registers quantum weights as PyTorch parameters. Use ideal local CPU statevector simulation, no token/account and no shot noise. Both zero-precision settings must be supplied because a QNN's nonzero default precision could override the estimator's exact default. Installed gradient source inspection confirms its V2 path calls estimator.run without a precision override, so it inherits the estimator's zero default; its constructor has no precision keyword. Phase 4 must verify actual forward/backward compatibility before integration.
+
+Mandatory tests: four qubits; four inputs; 16 weights; batched output (B,4); finite outputs; finite, nonzero aggregate quantum gradients and input gradients for a nondegenerate initialization; optimizer updates quantum weights; a small target-fitting loss decreases. Test observable order and deterministic exact expectations too. Gradients chain from loss through decoder, measurements, rotations, pi*tanh, encoder and timestep encoding. Do not advance if tests fail.
+
+## DDPM equations and indexing (Phase 3)
+
+Use mathematical time k in {1,...,20}, code index k-1. Linear beta schedule beta_1=0.0001 to beta_20=0.02; alpha_k=1-beta_k; alpha_bar_k=product_{j=1}^k alpha_j, alpha_bar_0=1.
+
+Forward sample:
+\[
+x_k=\sqrt{\bar\alpha_k}x_0+\sqrt{1-\bar\alpha_k}\epsilon,\quad\epsilon\sim N(0,I).
+\]
+
+Draw timesteps uniformly and independently for each training sample. Minimize mean over batch and sequence dimensions of (epsilon - epsilon_theta(x_k,k))². There is no reconstruction-loss substitution.
+
+Start reverse sampling x_20 ~ N(0,I), then for k=20,...,1 use
+\[
+\mu_\theta(x_k,k)=\alpha_k^{-1/2}\left(x_k-\frac{\beta_k}{\sqrt{1-\bar\alpha_k}}\epsilon_\theta(x_k,k)\right),
+\quad \tilde\beta_k=\beta_k\frac{1-\bar\alpha_{k-1}}{1-\bar\alpha_k}.
+\]
+
+For k>1, x_{k-1}=mu_theta+sqrt(beta_tilde_k)*z, z~N(0,I); at k=1, return mu_theta with no noise. Use eval mode and no_grad; return (B,32); check finiteness and shapes at every step and record excessive-magnitude diagnostics without silently clipping outputs or discarding bad runs.
+
+**Required schedule limitation:** with this short/small-beta schedule, alpha_bar_20 is approximately 0.817. The terminal forward distribution retains substantial signal (signal coefficient about 0.904, noise coefficient about 0.428), so it is not close to the pure Gaussian reverse initialization. This prior mismatch can limit both models' generation quality regardless of learning. Retain the supervisor's specified schedule; do not change steps or beta values without approval. Small validation MSE alone cannot establish good generation.
+
+## Training protocol and budget controls
+
+Shared Adam with initial LR 0.001, batch size 16, CPU float32 neural networks, shuffle per epoch, no dropped last batch, identical loss and schedule. Best checkpoint selected solely by validation noise-prediction MSE, including weights, optimizer, step/epoch, seeds, normalization and configuration. Report last and best losses; evaluate the best checkpoint. Fix validation noise/timestep draws across checkpoints and paired model comparisons, independent of training RNG. Test/reference data must not tune checkpoints, hyperparameters or budgets.
+
+Full epochs/max_steps are unset in config until approved after measured pilot. Phase 3 smoke training and Phase 5 hybrid smoke training precede larger jobs. A proposed five-step quantum pilot includes warm-up separately, forward/backward/optimizer timing, validation timing and a small sampling-cost probe. These are future actions, not Phase 1 executions. Estimate cost using measured seconds per update times ceil(N/16)*epochs, add validation and 20-step reverse sampling for 200 sequences, and show uncertainty. Measure all fractions where batching/overheads matter. Request confirmation before a long run.
+
+Primary comparison uses equal approved optimizer-update budgets per model within each fraction, preserving the same number of training-example exposures for paired models. To interpret scarcity across fractions, prefer one common max_steps across fractions; explicitly report effective epochs/exposures and the ceiling batch effects. If an epoch budget is selected instead, document that fewer data imply fewer updates and confound scarcity with optimization. Any alternate budget policy requires discussion. Train all three seeds if feasible; otherwise report measured cost and stop for a decision, without substituting a smaller unreported protocol.
+
+## Evaluation protocol (Phase 6)
+
+Initially generate exactly 200 sequences per model/seed/fraction, equal to held-out reference size. Use the same initial Gaussian arrays and per-step noise arrays in paired runs, with a separate sampling seed derived from the run seed. Increase to 1,000 only if measured sampling cost supports an approved identical setting. Inverse-normalize all outputs first. Record all raw metrics and generated arrays, including failed runs/status and explanations. Do not replace non-finite generated samples with hand-picked successful samples.
+
+- Marginal Wasserstein-1 distance: scipy.stats.wasserstein_distance on flattened real and generated values. It measures pooled amplitude marginals, not full joint or temporal fidelity.
+- Mean/std/variance differences: signed generated minus reference values, plus their absolute errors; pooled entries, ddof=0. Units are amplitude, amplitude and amplitude² respectively.
+- ACF: for each length-32 sequence subtract its own mean; r_i(lag)=sum_{t=0}^{31-lag} y_i(t)y_i(t+lag)/sum_{t=0}^{31} y_i(t)², for lags 0..10 (biased finite-window normalization). Average r_i across sequences equally. Do not concatenate sequences or introduce correlations across sequence boundaries. Near-zero-denominator sequences are undefined: report their count and fail/flag temporal evaluation instead of silently dropping them. Define ACF error as mean_{lag=1..10}|mean_r_generated(lag)-mean_r_reference(lag)|. Report individual ACFs as well as aggregate curves to expose cancellation. ACF is dimensionless.
+- Timing: perf_counter wall time, separate training (including validation/checkpoint overhead) and optimizer-loop time, seconds/epoch and seconds/update, and reverse-sampling time. Device synchronization if GPU timing is introduced later. Record simulator, precision/shots, CPU model/platform/thread count and device. All quantum costs are classical simulation costs, not hardware execution times.
+- Counts: count trainable parameters from model.parameters; instrument submitted parameter-bound circuit/observable workloads where possible, distinguishing batched primitive calls, circuit bindings and observable evaluations. Do not call an unmeasured count a hardware shot count. If unavailable record Not measured.
+
+Save one raw result record per model/fraction/seed and descriptive arithmetic means and sample standard deviations (ddof=1 across three repetitions). A single seed has undefined cross-seed std: record null/Not evaluated rather than zero. Plot every data fraction with the same settings and fixed sample-index choices, never select favorable runs. Pilot timings are not trained-model quality results.
+
+## Figures and research limitations
+
+Later phases will produce real/classical/hybrid examples, overlaid ACFs and amplitude histograms, training/validation loss, quality and ACF error versus fraction, training time, architecture and circuit diagrams. Use Matplotlib readable labels/units, fixed indices and PNG (300 dpi) plus PDF. Each figure needs provenance (run identifiers, seed, fraction, checkpoint and metric definition). No figure contains invented results.
+
+Limitations: short terminal schedule/prior mismatch; 32-point synthetic-only sequences; constrained four-dimensional bottleneck; simulator overhead and parameter-shift costs; unequal parameter counts and expressiveness; seed/sample uncertainty; noisy denoising validation estimates; pooling/ACF omit higher-order structure; per-subset normalization changes coordinates across fractions; long training may be infeasible. The experiment cannot establish quantum hardware speedup or general quantum advantage. A null/negative result remains valid survey evidence.
+
+## API references consulted in Phase 1
+
+- [EstimatorQNN API, Qiskit ML 0.9.1](https://qiskit-community.github.io/qiskit-machine-learning/stubs/qiskit_machine_learning.neural_networks.EstimatorQNN.html): explicit input gradients and estimator/precision arguments.
+- [TorchConnector tutorial](https://qiskit-community.github.io/qiskit-machine-learning/tutorials/05_torch_connector.html): joint Torch optimization.
+- [StatevectorEstimator](https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.primitives.StatevectorEstimator): V2 local statevector primitive.
+
+Consulted 9 October 2026. Installed versions and actual environment check results are authoritative in results/environment.json; import checks alone do not establish full circuit-gradient compatibility.
