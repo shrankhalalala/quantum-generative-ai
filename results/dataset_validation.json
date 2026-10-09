@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "data_directory": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/data/datasets",
+  "artifact_checks": [
+    "hashes",
+    "equation including saved noise",
+    "fixed split indices",
+    "nested prefixes",
+    "subset-only normalization"
+  ],
+  "raw_dataset_summary": {
+    "shape": [
+      1400,
+      32
+    ],
+    "mean": -0.00274637455505731,
+    "std": 0.669162346454884,
+    "min": -1.5077329578341159,
+    "max": 1.5710201959900207
+  },
+  "observation_noise_mean": -0.0001122919804301616,
+  "observation_noise_std": 0.04988852458862903,
+  "representative_indices": [
+    825,
+    1024,
+    641,
+    499,
+    1171,
+    16
+  ],
+  "held_out_mean_acf": [
+    1.0,
+    0.8743467764850351,
+    0.6143914133715018,
+    0.28935880553601195,
+    -0.022847400912744963,
+    -0.2687909719547578,
+    -0.42149075901706956,
+    -0.47574650431067567,
+    -0.43886644099280564,
+    -0.3341364752006492,
+    -0.19770153786060546
+  ],
+  "figure_sha256": {
+    "dataset_representative_series.png": "239d8bec07d4b643215e82fe975e1570d7136e9e7b1d3df84847b5c710580869",
+    "dataset_representative_series.pdf": "ac05cd6c3bfeeb2ca260a83e43ef630c0cae0d9666a3fa1f06c08c344db8f1c2",
+    "dataset_amplitude_distribution.png": "fb8ee979a1f699329137073c91729653c964b8ded5229c6cbe77b4a17d92631c",
+    "dataset_amplitude_distribution.pdf": "6e72f7971e0258fe91b15e9c992a607763c8a1ba6b44c974a17ce0a3dee273d4",
+    "dataset_autocorrelation.png": "36995f70a25bdbb21794c5762a49fbd92cc8b05e745eabfbd2c64b87e1099921",
+    "dataset_autocorrelation.pdf": "9a26b5611d2d7007aeaf331686c1529afe60686c8d044d9035d787713240b548"
+  },
+  "dataset_metadata_sha256": "bd25045cb04b50de48ee63f88761c543389267484b6759dd2d3587e8ead23a5c",
+  "models_trained": false
+}

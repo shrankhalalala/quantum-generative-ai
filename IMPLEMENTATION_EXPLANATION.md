@@ -2,7 +2,7 @@
 
 **Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
 
-This implementation supports the survey, rather than replacing its literature review. Phase 1 only defines a reproducible experiment and verifies the environment.
+This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Models and training remain future work.
 
 ## How to explain the experiment
 
@@ -19,15 +19,27 @@ The required schedule only weakly corrupts the data by its final step, which mak
 | scripts/check_environment.py | CLI accepts optional --output path; writes results/environment.json | Checks config and scientific/API imports, repeatability, a simple CPU autograd derivative (d(x²)/dx=2x), and plotting without a display. Records GPU availability but runs CPU. Does not create the experimental QNN or verify its gradients. |
 | tests/test_phase1.py | unittest suite, no dataset/training inputs | Verifies finalized defaults, invalid config rejection, exact RNG repeatability, invalid seeds and JSON persistence/finiteness. All arrays here are tiny random draws for checks, not generated research time series. |
 | requirements.txt / requirements-lock.txt | Dependency inputs to pip; output is the isolated scientific environment | Direct version pins versus complete transitive snapshot. pip check verifies metadata consistency, not mathematical correctness. |
-| package __init__.py files | Package scaffolding; no inputs or computation | Empty aside from descriptions. Importing them cannot launch experiments. |
+| package __init__.py files | Package names; no inputs or computation | Empty aside from descriptions. Importing them cannot launch experiments. |
 | README.md | Setup/execution guide | Provides only commands for programs that exist, phase boundaries and next steps. |
 | EXPERIMENTAL_METHODOLOGY.md | Scientific specification | Contains dataset, models, forward/reverse equations, metric definitions, fair comparisons and validity threats. |
 | RESULTS.md / results/environment.json | Evidence/status | Distinguishes executed environment checks from unexecuted scientific outcomes; never substitutes pilot checks for model results. |
 | .gitignore | Local Git ignore policy | Excludes environment/cache and bulk dataset/checkpoints; retain these separately as experimental artifacts. Results/provenance files remain trackable. |
 
-## Future file map (specified, not implemented)
+## Files implemented in Phase 2
 
-- data/generate_data.py (Phase 2): config and seed → raw (1400,32) arrays, sampled signal parameters, split indices, nested subsets, normalization statistics, metadata and plots. Sin/cos arguments encode cycles over a window; training-only z-score and inverse transform prevent leakage.
+| File | Inputs → outputs | Functions, mathematics and connections |
+|---|---|---|
+| data/dataset.py | DatasetConfig → SyntheticDataset and integer indices | `generate_dataset` draws the signal parameters and noise, `clean_signal` broadcasts per-row parameters over t=arange(32)/32, `make_splits` permutes all 1,400 row IDs, `nested_subsets` permutes train IDs once per seed and takes prefixes. Validators check dimensions, parameter ranges, equation reconstruction and split coverage. |
+| data/normalization.py | Selected training array → scalar NormalizationStats; arrays + saved stats → normalized arrays | `fit_normalization` computes pooled mean and population std across the selected subset. `transform`: (x-mu)/sigma, `inverse_transform`: z*sigma+mu. `prepare_splits` applies one recorded transform to train/validation/test; rejects non-finite arrays and zero/near-zero scales. |
+| data/artifacts.py | Dataset/config/output directory → four saved NPZ/JSON artifacts and DatasetBundle | `save_bundle` stores raw signal parameters/noise, split/subset indices, stats and provenance; overwrite requires an explicit flag. `load_bundle` rejects hash/config/selection/statistics mismatches and disables pickle. `normalized(seed,size)` prepares paired-model inputs from saved stats. `summarize` computes shape/mean/std/min/max; `sha256` identifies files. |
+| utils/time_series.py | Finite (N,L) arrays and max lag → (N,max_lag+1) ACFs or mean curve | `sequence_acf` demeans each row, uses the full sum of squared deviations as denominator for every lag, and sums overlapping products. `mean_acf` weights rows equally; never concatenates sequence boundaries. Near-constant rows have undefined ACF and trigger an error. The same functions will be used in Phase 6. |
+| data/plotting.py | Verified DatasetBundle → three PNG/PDF figure pairs | `plot_dataset` uses first six fixed held-out IDs; plots signals, pooled amplitude histogram, individual ACFs and 200-row held-out mean ACF. No favorable-example selection. Matplotlib headless backend, 300 dpi and embedded TrueType PDF fonts. |
+| data/generate_data.py | CLI/default configuration → saved dataset, summaries, figures and validation records | Orchestrates generation → persistence/verified reload → plots → result/provenance writes. `--verify-only` only reads/checks existing data; `--overwrite` explicitly regenerates. The `__main__` guard prevents execution on import. |
+| tests/test_phase2.py | Fixed specification and isolated temporary artifact directories → 15 dataset test results | Tests exact repeats and seed changes, valid parameters/noise, global RNG independence, disjoint fixed splits, nested prefixes for all seeds, per-subset stats, inverse transforms, leakage perturbations, hand-calculated ACF and checksum/config failure handling. Full suite also includes five Phase 1 tests. |
+
+The NPZ file stores raw unnormalized values; training will call `bundle.normalized(seed,size)` and convert those arrays to float32 Torch tensors. Storing indices instead of twelve duplicate datasets keeps subset membership explicit and prevents stale copies. Float64 raw storage avoids extra rounding in equation validation.
+
+## Future file map (specified, not implemented)
 - models/classical_denoiser.py (Phase 3): noisy (B,32), timestep (B,) → predicted noise (B,32), using learned time embedding, shared encoder, affine/Tanh bottleneck and decoder.
 - diffusion/noise_schedule.py (Phase 3): beta bounds and T → beta/alpha/cumulative-alpha arrays; schedule buffers drive both forward noising and sampling.
 - diffusion/sampling.py (Phase 3): trained model, schedule and independent RNG → newly generated (B,32) arrays through reverse means and posterior variances. Never copies dataset rows.

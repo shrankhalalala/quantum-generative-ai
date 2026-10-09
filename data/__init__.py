@@ -1,1 +1,1 @@
-"""data: implementation added in its approved phase."""
+"""Reproducible synthetic dataset, normalization, artifacts and figures."""

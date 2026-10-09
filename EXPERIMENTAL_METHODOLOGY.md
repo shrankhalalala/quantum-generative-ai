@@ -2,13 +2,13 @@
 
 **Approved survey title: Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
 
-This experiment is a focused extension of the existing survey of 25 previously selected papers (15 reviewed at mid-evaluation). It does not replace the literature review. Phase 1 specifies the experiment; no dataset or model has been implemented yet.
+This experiment is a focused extension of the existing survey of 25 previously selected papers (15 reviewed at mid-evaluation). It does not replace the literature review. Phase 1 specified the experiment; Phase 2 implements and validates the dataset. Models/training remain unimplemented and await later approvals.
 
 ## Objective and hypotheses
 
 Compare a small classical DDPM with a hybrid DDPM that replaces only a four-dimensional bottleneck with a trainable four-qubit circuit. Assess marginal generation quality, temporal correlation, simulation cost, and limited-data behavior. Hypotheses: (H1) the hybrid can learn a useful denoiser; (H2) its generation/ACF errors may differ from the baseline; (H3) the difference may depend on training-set size. These are empirical questions, not assumed improvements. Three repetitions permit descriptive variability estimates, not strong significance claims.
 
-## Dataset and persistence plan (Phase 2)
+## Dataset and persistence (Phase 2 implemented)
 
 For each of exactly 1,400 sequences, independently draw
 
@@ -31,7 +31,7 @@ For repetition seed 11, 22 or 33, permute only the 1,000 training indices once; 
 
 Fit a single scalar mean and population standard deviation (ddof=0) across all entries of the selected training subset. Apply (x-mu)/sigma to its training data, fixed validation and fixed test sequences. Save mu/sigma per repetition/fraction and reuse across models; reject non-finite or near-zero sigma. Thus the 100-sample condition uses no information from the other 900 training sequences. Inverse-transform generated sequences before computing physical-scale metrics. The raw reference remains fixed; transformed validation/test values can differ across fractions because the training-only transform differs.
 
-Phase 2 will plot the first six entries of a fixed held-out-index order (no visual cherry-picking), a pooled-value histogram and their individual ACFs; report mean, population std, min, max and shape. Report training-only normalization statistics separately from descriptive full-dataset summaries.
+Phase 2 plots the first six entries of a fixed held-out-index order (no visual cherry-picking), a pooled-value histogram and their individual ACFs; report mean, population std, min, max and shape. Report training-only normalization statistics separately from descriptive full-dataset summaries.
 
 ## Shared architecture specification (Phases 3–5)
 
@@ -113,3 +113,13 @@ Limitations: short terminal schedule/prior mismatch; 32-point synthetic-only seq
 - [StatevectorEstimator](https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.primitives.StatevectorEstimator): V2 local statevector primitive.
 
 Consulted 9 October 2026. Installed versions and actual environment check results are authoritative in results/environment.json; import checks alone do not establish full circuit-gradient compatibility.
+
+## Phase 2 implementation evidence
+
+Generation uses independent `np.random.default_rng` instances for synthesis (2026), split selection (2027) and each repetition's training permutation (11/22/33), without consuming global NumPy RNG state. Draw order is A, f, phi, B, psi, then the full (1400,32) Gaussian-noise array. Raw values and parameter arrays are float64. Save the noise explicitly to allow exact equation reconstruction; normalization is a scalar global z-score per selected subset, not per sequence or time position.
+
+Exactly 1,400 sequences were generated and saved; the raw reference and validation splits each contain 200 sequences. The six plotted original-row indices are 825, 1024, 641, 499, 1171 and 16 (first six fixed test indices). The distribution histogram is descriptive pooled data plus the held-out reference; full-data histogram/statistics do not enter normalization. Individual ACFs and the equal-weight mean of all 200 held-out ACFs use the shared implementation in `utils/time_series.py`.
+
+Dataset validation and all 19 Phase 1/2 tests passed. Saved artifact loading verifies SHA-256, full equation including stored noise, exact split and nested-subset seed selection, and recomputed training-only statistics. A leakage test sets all excluded rows (validation, test and unselected training rows) to 1,000,000 and verifies that fitting the selected training subset is unchanged. Inverse transformation restores original raw values to floating-point tolerance. Near-constant ACF rows raise a descriptive error, rather than silently disappearing from an aggregate.
+
+Each saved condition shares its exact indices and scalar statistics across future model comparisons; normalized arrays are computed on demand and never refitted to validation/test. Full-data descriptive statistics and the measured observation-noise moments are reported in RESULTS.md; no trained-model outcome has been evaluated.

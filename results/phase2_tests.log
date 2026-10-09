@@ -1,0 +1,25 @@
+test_approved_specification (test_phase1.Phase1Tests.test_approved_specification) ... ok
+test_invalid_configuration_rejected (test_phase1.Phase1Tests.test_invalid_configuration_rejected) ... ok
+test_reproducible_random_streams (test_phase1.Phase1Tests.test_reproducible_random_streams) ... ok
+test_seed_validation (test_phase1.Phase1Tests.test_seed_validation) ... ok
+test_strict_json (test_phase1.Phase1Tests.test_strict_json) ... ok
+test_hand_calculated_biased_acf (test_phase2.ACFTests.test_hand_calculated_biased_acf) ... ok
+test_per_sequence_centering_and_aggregate (test_phase2.ACFTests.test_per_sequence_centering_and_aggregate) ... ok
+test_undefined_acf_and_bad_lags_rejected (test_phase2.ACFTests.test_undefined_acf_and_bad_lags_rejected) ... ok
+test_corrupted_artifact_rejected (test_phase2.ArtifactTests.test_corrupted_artifact_rejected) ... ok
+test_later_training_budget_does_not_invalidate_dataset (test_phase2.ArtifactTests.test_later_training_budget_does_not_invalidate_dataset) ... ok
+test_save_reload_normalization_and_overwrite_guard (test_phase2.ArtifactTests.test_save_reload_normalization_and_overwrite_guard) ... ok
+test_exact_repeatability_and_seed_sensitivity (test_phase2.DatasetTests.test_exact_repeatability_and_seed_sensitivity) ... ok
+test_generation_does_not_consume_global_rng (test_phase2.DatasetTests.test_generation_does_not_consume_global_rng) ... ok
+test_invalid_subsets_and_nonfinite_data_rejected (test_phase2.DatasetTests.test_invalid_subsets_and_nonfinite_data_rejected) ... ok
+test_nested_subsets_all_seeds (test_phase2.DatasetTests.test_nested_subsets_all_seeds) ... ok
+test_shape_grid_ranges_and_equation (test_phase2.DatasetTests.test_shape_grid_ranges_and_equation) ... ok
+test_split_counts_disjoint_coverage_and_determinism (test_phase2.DatasetTests.test_split_counts_disjoint_coverage_and_determinism) ... ok
+test_bad_normalization_inputs (test_phase2.NormalizationTests.test_bad_normalization_inputs) ... ok
+test_evaluation_and_unused_training_values_cannot_affect_fit (test_phase2.NormalizationTests.test_evaluation_and_unused_training_values_cannot_affect_fit) ... ok
+test_training_statistics_and_round_trip_all_conditions (test_phase2.NormalizationTests.test_training_statistics_and_round_trip_all_conditions) ... ok
+
+----------------------------------------------------------------------
+Ran 20 tests in 1.704s
+
+OK

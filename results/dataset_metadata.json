@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "paper_title": "Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications",
+  "created_at_utc": "2026-10-09T14:18:06.141065+00:00",
+  "config": {
+    "dataset": {
+      "n_sequences": 1400,
+      "sequence_length": 32,
+      "split_sizes": [
+        1000,
+        200,
+        200
+      ],
+      "subset_sizes": [
+        1000,
+        500,
+        250,
+        100
+      ],
+      "generation_seed": 2026,
+      "split_seed": 2027,
+      "amplitude_range": [
+        0.6,
+        1.2
+      ],
+      "frequency_range": [
+        1.0,
+        3.0
+      ],
+      "harmonic_range": [
+        0.0,
+        0.3
+      ],
+      "noise_std": 0.05,
+      "normalization": "per_subset_global_zscore"
+    },
+    "model": {
+      "hidden_dim": 16,
+      "timestep_dim": 16,
+      "bottleneck_dim": 4,
+      "n_qubits": 4,
+      "quantum_layers": 2,
+      "rotations": [
+        "RY",
+        "RX"
+      ],
+      "entanglement_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    "diffusion": {
+      "steps": 20,
+      "beta_start": 0.0001,
+      "beta_end": 0.02
+    },
+    "training": {
+      "learning_rate": 0.001,
+      "batch_size": 16,
+      "epochs": null,
+      "max_steps": null,
+      "pilot_steps": 5,
+      "seeds": [
+        11,
+        22,
+        33
+      ],
+      "device": "cpu"
+    },
+    "evaluation": {
+      "generated_sequences": 200,
+      "max_acf_lag": 10,
+      "ddof": 0,
+      "validation_seed": 2028,
+      "sampling_seed_offset": 10000
+    }
+  },
+  "generation": {
+    "equation": "A*sin(2*pi*f*t+phi)+B*sin(4*pi*f*t+psi)+epsilon(t)",
+    "parameter_columns": [
+      "amplitude",
+      "frequency",
+      "phase",
+      "harmonic_amplitude",
+      "harmonic_phase"
+    ],
+    "rng": "NumPy default_rng (PCG64)",
+    "draw_order": "A,f,phi,B,psi,noise",
+    "phases": "independent Uniform[0,2*pi)",
+    "endpoint": false,
+    "noise": "independent Normal(0, noise_std**2)",
+    "dtype": "float64"
+  },
+  "selection": {
+    "split": "seeded permutation: first train, then validation, then test",
+    "subsets": "one train-index permutation per repetition seed; nested prefixes",
+    "representative_indices": [
+      825,
+      1024,
+      641,
+      499,
+      1171,
+      16
+    ]
+  },
+  "normalization": "per-subset pooled scalar z-score; training entries only; ddof=0",
+  "summary": {
+    "all": {
+      "shape": [
+        1400,
+        32
+      ],
+      "mean": -0.00274637455505731,
+      "std": 0.669162346454884,
+      "min": -1.5077329578341159,
+      "max": 1.5710201959900207
+    },
+    "train": {
+      "shape": [
+        1000,
+        32
+      ],
+      "mean": -0.0025439600689291754,
+      "std": 0.669347797718038,
+      "min": -1.5077329578341159,
+      "max": 1.5057881684715395
+    },
+    "validation": {
+      "shape": [
+        200,
+        32
+      ],
+      "mean": -0.001659976762799843,
+      "std": 0.6689951076125837,
+      "min": -1.489091837951204,
+      "max": 1.5710201959900207
+    },
+    "test": {
+      "shape": [
+        200,
+        32
+      ],
+      "mean": -0.004844844777955449,
+      "std": 0.6683974170626136,
+      "min": -1.4310093386272735,
+      "max": 1.5213351523811105
+    }
+  },
+  "environment": {
+    "python": "3.12.3 (v3.12.3:f6650f9ad7, Apr  9 2024, 08:18:47) [Clang 13.0.0 (clang-1300.0.29.30)]",
+    "executable": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/.venv/bin/python",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 8,
+    "pythonhashseed": "0",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "torch": "2.14.1",
+      "qiskit": "2.5.2",
+      "qiskit-machine-learning": "0.9.1",
+      "pytest": "9.1.1"
+    }
+  },
+  "sha256": {
+    "dataset.npz": "61f40b965ce2a97abde08ae8e3aa2e819e134ed1ced7d2d9e008ee776a9a6861",
+    "subsets.npz": "089e596097a6bd5880cd0c86bf57bbf2a7136e32ec62e6752742ff05907ac49b",
+    "normalization.json": "ee9129f1b4c0f29686dabd7c59bd7f649fd36fccde7329a9eb9b7d73621a1540"
+  }
+}
