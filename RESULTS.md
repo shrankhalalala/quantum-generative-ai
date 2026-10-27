@@ -20,14 +20,14 @@ At the end of Phase 1, no dataset or model had been executed. Dataset generation
 |---|---|
 | Dataset summaries and validation plots | Computed and verified in Phase 2 |
 | Classical training and generation quality | Five-update smoke completed; converged generation quality Not evaluated |
-| Standalone quantum forward/gradient/update tests | Not evaluated |
+| Standalone quantum forward/gradient/update tests | Passed in Phase 4 |
 | Hybrid training and generation quality | Not evaluated |
 | Wasserstein, mean/std/variance differences | Not evaluated |
 | ACF preservation/errors | Not evaluated |
-| Training, pilot and reverse-sampling timings | Classical smoke measured; full/quantum timings Not evaluated |
+| Training, pilot and reverse-sampling timings | Classical smoke and standalone quantum timings measured; hybrid/full timings Not evaluated |
 | Limited-data comparisons across three seeds | Not evaluated |
-| Quantum circuit evaluation counts | Not evaluated |
-| Instantiated model parameter counts | Classical: 1,816; hybrid/control Not evaluated |
+| Quantum circuit evaluation counts | Submitted estimator workloads measured in Phase 4; hardware execution Not evaluated |
+| Instantiated model parameter counts | Classical: 1,816; standalone quantum: 16; hybrid/control Not evaluated |
 
 Analytical architecture counts and schedule diagnostics in the methodology are design calculations, not measured model outcomes. Raw computed results will be saved under results/ before being reported here.
 
@@ -93,10 +93,49 @@ Classical runtime extrapolations below are **estimates**, not measured training 
 
 Raw evidence/config/history/timing/normalization/hardware/hash records: results/classical_smoke_seed11_n1000.json. Local best checkpoint: results/checkpoints/classical_smoke_seed11_n1000_best.pt (ignored by Git). Saved generated physical-scale samples: results/samples/classical_smoke_seed11_n1000.npy. Figures: results/figures/classical_smoke_seed11_n1000_loss.png/.pdf and _generated_series.png/.pdf.
 
-No unresolved functional Phase 3 test failure remains. Convergence, realistic generation, comparative metrics and quantum compatibility remain unestablished. Full training budget is still unset and requires discussion/approval; no long job has run. Phase 4 (standalone four-qubit QNN/gradient tests) awaits explicit approval. Suggested Phase 3 commit: `feat: implement classical DDPM training sampling and smoke validation`.
+No unresolved functional Phase 3 test failure remains. At Phase 3 completion, convergence, realistic generation, comparative metrics and quantum compatibility remained unestablished. Standalone quantum compatibility has since passed Phase 4 validation; the other outcomes remain unestablished. Full training budget is still unset and requires discussion/approval; no long job has run. Phase 4 was subsequently approved; its computed evidence follows below. Suggested Phase 3 commit: `feat: implement classical DDPM training sampling and smoke validation`.
 
 ## Publication and next-phase planning — 27 October 2026
 
-Phase 3 prepared for publication as its own commit, preserving the measured 9 October smoke results. PHASE4_PLAN.md specifies standalone circuit/QNN construction, gradient verification and a short toy optimization. Phase 4 implementation and quantum forward/backward execution have not started. Publication verification is reported in the chat; preparing this commit is not evidence that a remote push has already succeeded.
+Phase 3 prepared for publication as its own commit, preserving the measured 9 October smoke results. PHASE4_PLAN.md specifies standalone circuit/QNN construction, gradient verification and a short toy optimization. At planning time, Phase 4 implementation and quantum forward/backward execution had not started; subsequent Phase 4 execution is documented below. Publication verification is reported in the chat; preparing this commit is not evidence that a remote push has already succeeded.
 
 Pre-publication checks on 27 October 2026: all 37 regression tests passed in 2.046 seconds; pip check reported no broken requirements. Installed StatevectorEstimator, EstimatorQNN and ParamShiftEstimatorGradient signatures were inspected for the Phase 4 plan; no quantum circuit was executed.
+
+## Phase 4 — standalone quantum validation, 27 October 2026
+
+Phase 3 is published as commit cda3611. Phase 4 is recorded in its own implementation commit for publication on 27 October 2026. The approved four-qubit architecture is unchanged. No dataset regeneration, hybrid-model implementation or diffusion training occurred in this phase.
+
+All eight mandatory quantum checks passed: four qubits, four inputs, 16 trainable weights, batched four-dimensional outputs, finite outputs, quantum-weight gradients, input-feature gradients, and optimizer updates/loss decrease. The preceding-classical-Linear gradient check passed too. Standalone tests: **13 passed** in 3.275 s. Full regression suite: **50 passed** in 3.664 s, zero failures/errors. Raw evidence: phase4_quantum_tests.log and phase4_regression_tests.log.
+
+| Measured standalone outcome | Value |
+|---|---:|
+| Qubits / input parameters / trainable weights | 4 / 4 / 16 |
+| RY / RX / CX gate counts | 12 / 8 / 6 |
+| Probe batch / output shape | (2,4) / (2,4) |
+| Warm-up forward+backward (seconds) | 0.174878 |
+| Probe forward (seconds) | 0.004612 |
+| Probe backward (seconds) | 0.144488 |
+| Quantum-weight gradient L2 norm | 0.425402731 |
+| Feature-gradient L2 norm | 0.680278778 |
+| Independent Statevector maximum output error | 1.86841003e-08 |
+| Maximum absolute feature-derivative discrepancy | 1.85370445e-05 |
+| Maximum absolute weight-derivative discrepancy | 2.25454569e-05 |
+| Toy fit: initial MSE | 0.018879812 |
+| Toy fit: final MSE after ten Adam updates | 0.003244146 |
+| Final weight-displacement L2 norm | 0.361921400 |
+| Ten-update toy-loop time (seconds) | 1.575515 |
+
+Finite differences used step 0.001, atol 0.0003 and rtol 0.005, checking all eight fixture-feature entries and 16 weights. The independent expectation error compares against direct Statevector calculations, not a second QNN invocation. Toy targets were generated by the same circuit with initial weights plus a fixed 0.1–0.25-radian offset; batch size two, Adam LR 0.01, exactly ten updates, not a diffusion dataset experiment. All 11 losses, input/weight gradient norms, weights and displacement history are saved.
+
+Measured submitted workloads for the two-row probe:
+
+| Pass | Estimator run calls | PUBs | Parameter-binding instances | Observable evaluations |
+|---|---:|---:|---:|---:|
+| Forward | 1 | 4 | 8 | 8 |
+| Backward | 1 | 320 | 320 | 320 |
+
+Binding instances repeated across observables count again. These are instrumented submitted workloads, not unique circuits, hardware jobs/shots or a count internal to the simulator. The direct reference-Statevector work is excluded from estimator counts. Timings include instrumentation, and the ten-update time excludes initial target/optimizer construction; its loop includes post-update loss evaluations. All timings are ideal local CPU statevector simulation using pinned Qiskit 2.5.2 / Qiskit ML 0.9.1 / Torch 2.14.1. Both estimator and QNN precision are zero; no shots or hardware were used.
+
+Circuit figures: results/figures/quantum_circuit.png, .pdf and .txt, exported from Qiskit's text drawer through Matplotlib without new dependencies. The PNG was visually inspected. Source/figure hashes, CPU thread counts and environment versions are in results/phase4_checks.json. No dependency version changed; pip check passed.
+
+No unresolved functional Phase 4 failure remains. A small teacher-target fit demonstrates differentiability/trainability only. Hybrid DDPM gradients, training/sampling cost, generation quality, data scarcity and quantum advantage remain Not evaluated. Phase 5 awaits explicit approval. Suggested commit: `feat: add four-qubit quantum bottleneck and standalone gradient validation`.

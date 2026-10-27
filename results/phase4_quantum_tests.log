@@ -1,0 +1,18 @@
+test_all_feature_and_weight_derivatives_against_finite_differences (test_quantum_layer.QuantumLayerTests.test_all_feature_and_weight_derivatives_against_finite_differences) ... ok
+test_exact_circuit_and_parameter_order (test_quantum_layer.QuantumLayerTests.test_exact_circuit_and_parameter_order) ... ok
+test_gradients_reach_preceding_classical_layer (test_quantum_layer.QuantumLayerTests.test_gradients_reach_preceding_classical_layer) ... ok
+test_input_and_weight_gradients (test_quantum_layer.QuantumLayerTests.test_input_and_weight_gradients) ... ok
+test_invalid_inputs_weights_and_design_rejected (test_quantum_layer.QuantumLayerTests.test_invalid_inputs_weights_and_design_rejected) ... ok
+test_local_z_observable_order_with_known_basis_states (test_quantum_layer.QuantumLayerTests.test_local_z_observable_order_with_known_basis_states) ... ok
+test_precision_and_gradient_configuration (test_quantum_layer.QuantumLayerTests.test_precision_and_gradient_configuration) ... ok
+test_qnn_matches_independent_statevector (test_quantum_layer.QuantumLayerTests.test_qnn_matches_independent_statevector) ... ok
+test_same_seed_repeatability_and_global_rng_independence (test_quantum_layer.QuantumLayerTests.test_same_seed_repeatability_and_global_rng_independence) ... ok
+test_shapes_finite_bounds_and_batched_individual_agreement (test_quantum_layer.QuantumLayerTests.test_shapes_finite_bounds_and_batched_individual_agreement) ... ok
+test_state_dict_reload_restores_expectations (test_quantum_layer.QuantumLayerTests.test_state_dict_reload_restores_expectations) ... ok
+test_submitted_workload_counter_tracks_forward_backward (test_quantum_layer.QuantumLayerTests.test_submitted_workload_counter_tracks_forward_backward) ... ok
+test_ten_optimizer_updates_reduce_reachable_target_loss (test_quantum_layer.QuantumLayerTests.test_ten_optimizer_updates_reduce_reachable_target_loss) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 3.275s
+
+OK

@@ -2,7 +2,7 @@
 
 **Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
 
-This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Phase 3 now implements and smoke-tests the classical DDPM; quantum/hybrid models and full training remain future work.
+This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Phase 3 now implements and smoke-tests the classical DDPM; the standalone quantum layer is now validated in Phase 4; hybrid models and full training remain future work.
 
 ## How to explain the experiment
 
@@ -52,11 +52,10 @@ The NPZ file stores raw unnormalized values; training will call `bundle.normaliz
 
 Presentation explanation: the network predicts the known added noise, not the original clean signal directly. The timestep embedding tells it how much noise the forward schedule added. Forward noising is a direct formula, but generation needs 20 iterative reverse steps. Adam updates every registered network parameter together. Validation uses a fixed corruption draw so checkpoint comparisons are less noisy; the held-out reference does not pick checkpoints.
 
-The five-step run is a functional smoke test: its outputs are visibly noisy. A small denoising-MSE improvement cannot be presented as realistic generation. The imposed schedule ends far from pure noise, so its Gaussian initialization mismatch remains a validity limitation even after more training. Training and sample timings are CPU classical-model timings; the quantum simulator will need its own measured pilot.
+The five-step run is a functional smoke test: its outputs are visibly noisy. A small denoising-MSE improvement cannot be presented as realistic generation. The imposed schedule ends far from pure noise, so its Gaussian initialization mismatch remains a validity limitation even after more training. Training and sample timings are CPU classical-model timings; standalone quantum simulation timings are now measured in Phase 4; the full hybrid workload still needs a Phase 5 pilot.
 
 ## Future file map (specified, not implemented)
 
-- models/quantum_layer.py (Phase 4): four encoder features → pi*tanh angles → four RY inputs → two trainable entangling layers → four local Z expectations. QNN and TorchConnector carry input/weight gradients; exactly 16 trainable circuit parameters.
 - models/hybrid_denoiser.py (Phase 5): same inputs/outputs as baseline, swaps only bottleneck and reuses common architecture. Shared parameter initialization must be explicitly copied for paired trials.
 - evaluation/metrics.py (Phase 6): inverse-transformed generated/reference arrays → marginal distribution metrics and mean per-sequence biased ACF errors. Correlations never cross sequence boundaries.
 - evaluation/compare_models.py (Phase 6): raw per-run records → repeated-run means/sample standard deviations and provenance-preserving comparisons.
@@ -64,3 +63,19 @@ The five-step run is a functional smoke test: its outputs are visibly noisy. A s
 - evaluation/plotting.py (Phase 7 or earlier phase-specific plots): actual data/losses/metrics → Matplotlib PNG/PDF; fixed sample selection, labels, no invented values.
 
 The methodology specifies complete formulas and tensor dimensions so these implementations can be defended during evaluation. Explanations will be updated with actual functions and test evidence as each phase is approved and completed.
+
+## Files implemented in Phase 4
+
+| File | Inputs → outputs | Main functions and connections |
+|---|---|---|
+| models/quantum_layer.py | Finite CPU float32 features (B,4) → local-Z expectations (B,4) | `build_quantum_circuit` returns the four-qubit circuit, explicitly ordered inputs/weights and observables. `QuantumLayer` applies pi*Tanh, then TorchConnector backed by an exact EstimatorQNN. `weight` exposes the same 16 registered optimizer parameters. `CountingStatevectorEstimator` records submitted workload counts without changing ideal expectations. |
+| scripts/check_quantum_layer.py | Explicit CLI invocation → diagnostic JSON/log, toy loss history and circuit files | `statevector_outputs` independently binds the circuit and computes exact observables. `finite_difference_check` compares all fixture-feature and weight derivatives to autograd, restoring perturbed weights afterward. `optimize_toy` performs exactly ten Adam updates against a reachable teacher target. `draw_circuit` exports the actual Qiskit text diagram using existing Matplotlib. `main` records warm-up, forward/backward timing, counters and failures; it refuses to overwrite an existing report. |
+| tests/test_quantum_layer.py | Deterministic fixtures → 13 standalone tests | Checks structure/gate/parameter order, observable endianness, ideal precision settings, batched/individual outputs, independent Statevector agreement, finite-difference gradients, preceding-classical-layer gradients, optimizer updates/loss decrease, invalid input rejection, workload counters, reproducible initialization/outputs and state-dict reload. |
+| results/phase4_checks.json and logs | Actual executions → evidence | Contains all eight mandatory-check statuses, concrete outputs/gradient norms, all derivative discrepancies, eleven toy losses, parameter changes, CPU/thread/package metadata and submitted-workload counters. New test counts/timings and artifact hashes are appended after the full suite and visual QA. |
+| results/figures/quantum_circuit.* | Actual circuit → PNG/PDF/TXT | Shows the exact encoding and trainable parameter placement with directed CX connections. Text-drawer embedding avoids an extra optional drawing dependency. |
+
+For presentation: four classical numbers become four bounded angles. Each RY gate places its qubit into a superposition; trainable RY/RX gates and CX interactions transform the joint four-qubit state. The outputs are expectation values, not sampled bitstrings. A loss on these four values produces gradients for the 16 rotation angles and for the original features. Thus an earlier classical encoder can learn along with the circuit in a future hybrid model.
+
+The parameter-shift rule evaluates circuits at shifted angles to form derivatives. TorchConnector uses these derivatives in its custom backward function. Its internal NumPy conversion does not itself break autograd because the connector supplies the backward mapping; manually converting features to NumPy before the connector would break the preceding classical graph. The code avoids that mistake and tests the full feature-angle-circuit chain.
+
+The independent toy fit is a reachable-target test, not sinusoidal generation. The ten updates reduced its recorded MSE and moved the quantum parameters. This validates optimization wiring. It does not imply that the hybrid diffusion model will beat the classical model or require less data. Phase 5 will integrate only the bottleneck and measure the actual combined workload; Phase 6 will perform fair comparative experiments.

@@ -1,0 +1,376 @@
+{
+  "status": "passed",
+  "created_at_utc": "2026-10-27T12:16:49.972264+00:00",
+  "environment": {
+    "python": "3.12.3 (v3.12.3:f6650f9ad7, Apr  9 2024, 08:18:47) [Clang 13.0.0 (clang-1300.0.29.30)]",
+    "executable": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/.venv/bin/python",
+    "platform": "macOS-26.7.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 8,
+    "pythonhashseed": "0",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "torch": "2.14.1",
+      "qiskit": "2.5.2",
+      "qiskit-machine-learning": "0.9.1",
+      "pytest": "9.1.1"
+    }
+  },
+  "torch_threads": 4,
+  "torch_interop_threads": 8,
+  "simulator": "ideal local CPU StatevectorEstimator",
+  "precision": 0.0,
+  "shots": "not applicable",
+  "hardware_execution": false,
+  "diffusion_training_executed": false,
+  "phase5_started": false,
+  "circuit": {
+    "qubits": 4,
+    "inputs": 4,
+    "trainable_weights": 16,
+    "gate_counts": {
+      "ry": 12,
+      "rx": 8,
+      "cx": 6
+    },
+    "observables": [
+      "IIIZ",
+      "IIZI",
+      "IZII",
+      "ZIII"
+    ],
+    "input_gradients": true,
+    "initial_weight_seed": 11,
+    "initial_weight_range": [
+      -0.7853981633974483,
+      0.7853981633974483
+    ]
+  },
+  "probe": {
+    "batch_shape": [
+      2,
+      4
+    ],
+    "output_shape": [
+      2,
+      4
+    ],
+    "output": [
+      [
+        0.6454677581787109,
+        0.4467911720275879,
+        0.507321298122406,
+        0.4492799937725067
+      ],
+      [
+        0.4995923340320587,
+        0.2608434557914734,
+        0.321938693523407,
+        -0.2058793157339096
+      ]
+    ],
+    "warmup_forward_backward_seconds": 0.17487833299674094,
+    "forward_seconds": 0.004611625015968457,
+    "backward_seconds": 0.14448800001991913,
+    "weight_gradient_l2": 0.4254027307033539,
+    "feature_gradient_l2": 0.6802787780761719,
+    "forward_submitted_workloads": {
+      "run_calls": 1,
+      "pubs": 4,
+      "submitted_parameter_bindings": 8,
+      "observable_expectation_evaluations": 8
+    },
+    "backward_submitted_workloads": {
+      "run_calls": 1,
+      "pubs": 320,
+      "submitted_parameter_bindings": 320,
+      "observable_expectation_evaluations": 320
+    },
+    "independent_statevector_max_absolute_error": 1.868410026695244e-08
+  },
+  "finite_differences": {
+    "step": 0.001,
+    "absolute_tolerance": 0.0003,
+    "relative_tolerance": 0.005,
+    "feature_derivatives_checked": 8,
+    "weight_derivatives_checked": 16,
+    "max_feature_absolute_error": 1.8537044525146484e-05,
+    "max_weight_absolute_error": 2.2545456886291504e-05,
+    "analytic_feature_gradient": [
+      [
+        0.41432076692581177,
+        0.09971576929092407,
+        -0.2002348154783249,
+        0.044118840247392654
+      ],
+      [
+        0.28012359142303467,
+        0.331807941198349,
+        -0.04574837535619736,
+        0.06767623871564865
+      ]
+    ],
+    "finite_difference_feature_gradient": [
+      [
+        0.4143267571926117,
+        0.09971856325864792,
+        -0.20022688806056976,
+        0.04413723573088646
+      ],
+      [
+        0.28011947870254517,
+        0.33182647824287415,
+        -0.045746561139822006,
+        0.06766617298126221
+      ]
+    ],
+    "analytic_weight_gradient": [
+      0.23064035177230835,
+      0.04149959981441498,
+      0.14292624592781067,
+      -0.1100759506225586,
+      -0.08435545861721039,
+      -0.059232864528894424,
+      0.04158937186002731,
+      0.01698114722967148,
+      -0.0636642649769783,
+      0.06983423233032227,
+      -0.10203470289707184,
+      -0.031020941212773323,
+      -0.07180949300527573,
+      0.03555714339017868,
+      0.019056083634495735,
+      0.026072874665260315
+    ],
+    "finite_difference_weight_gradient": [
+      0.23061780631542206,
+      0.0414922796189785,
+      0.14291703701019287,
+      -0.11006741970777512,
+      -0.08435546606779099,
+      -0.05922466143965721,
+      0.04157423600554466,
+      0.016987323760986328,
+      -0.06365031003952026,
+      0.06984919309616089,
+      -0.10201334208250046,
+      -0.03102421574294567,
+      -0.07180869579315186,
+      0.035546720027923584,
+      0.019066035747528076,
+      0.026069579645991325
+    ]
+  },
+  "toy_optimization": {
+    "seed": 11,
+    "steps": 10,
+    "batch_size": 2,
+    "optimizer": "Adam",
+    "learning_rate": 0.01,
+    "seconds": 1.5755151250050403,
+    "losses": [
+      0.018879812210798264,
+      0.01611524075269699,
+      0.01358836516737938,
+      0.011319760233163834,
+      0.009332958608865738,
+      0.0076432377099990845,
+      0.0062535544857382774,
+      0.005151830613613129,
+      0.00431088637560606,
+      0.0036910956259816885,
+      0.003244146006181836
+    ],
+    "weight_change_l2_per_update": [
+      0.03999914973974228,
+      0.07692202925682068,
+      0.11486503481864929,
+      0.15300790965557098,
+      0.19088803231716156,
+      0.22811053693294525,
+      0.2642662525177002,
+      0.2989208996295929,
+      0.33162346482276917,
+      0.36192139983177185
+    ],
+    "gradient_norms_per_update": [
+      {
+        "weights_l2": 0.11084899306297302,
+        "features_l2": 0.17206785082817078
+      },
+      {
+        "weights_l2": 0.1014980897307396,
+        "features_l2": 0.15995121002197266
+      },
+      {
+        "weights_l2": 0.09240871667861938,
+        "features_l2": 0.14868976175785065
+      },
+      {
+        "weights_l2": 0.08315188437700272,
+        "features_l2": 0.1378450244665146
+      },
+      {
+        "weights_l2": 0.07386194169521332,
+        "features_l2": 0.12754309177398682
+      },
+      {
+        "weights_l2": 0.06477665901184082,
+        "features_l2": 0.11790135502815247
+      },
+      {
+        "weights_l2": 0.05619977042078972,
+        "features_l2": 0.1089707463979721
+      },
+      {
+        "weights_l2": 0.04847726225852966,
+        "features_l2": 0.10070879757404327
+      },
+      {
+        "weights_l2": 0.04195552319288254,
+        "features_l2": 0.09298869967460632
+      },
+      {
+        "weights_l2": 0.03690900653600693,
+        "features_l2": 0.08564519137144089
+      }
+    ],
+    "initial_weights": [
+      -0.5834405422210693,
+      -0.0011343309888616204,
+      0.1594332456588745,
+      -0.7403335571289062,
+      -0.5530363917350769,
+      0.6726322770118713,
+      -0.6747817993164062,
+      -0.5815497040748596,
+      0.7042326927185059,
+      0.19145430624485016,
+      -0.2057851254940033,
+      0.017891405150294304,
+      0.25579312443733215,
+      -0.3529440760612488,
+      -0.5686784386634827,
+      0.45245152711868286
+    ],
+    "final_weights": [
+      -0.6502314209938049,
+      -0.06936109066009521,
+      0.2599266469478607,
+      -0.8280067443847656,
+      -0.4543653726577759,
+      0.7645990252494812,
+      -0.7693687677383423,
+      -0.6754202842712402,
+      0.7994802594184875,
+      0.2799808979034424,
+      -0.11179592460393906,
+      0.1091572716832161,
+      0.3507440686225891,
+      -0.4409903585910797,
+      -0.4795781373977661,
+      0.35573408007621765
+    ],
+    "teacher_weights": [
+      -0.48344054222106936,
+      0.10886566901113838,
+      0.2794332456588745,
+      -0.6103335571289062,
+      -0.4130363917350769,
+      0.8226322770118714,
+      -0.5147817993164062,
+      -0.4115497040748596,
+      0.8842326927185058,
+      0.38145430624485016,
+      -0.005785125494003285,
+      0.22789140515029432,
+      0.4757931244373321,
+      -0.12294407606124877,
+      -0.3286784386634827,
+      0.7024515271186829
+    ],
+    "features": [
+      [
+        0.1,
+        -0.2,
+        0.3,
+        0.4
+      ],
+      [
+        -0.3,
+        0.2,
+        0.1,
+        -0.4
+      ]
+    ],
+    "targets": [
+      [
+        0.5490438938140869,
+        0.41500723361968994,
+        0.24412710964679718,
+        0.3305380940437317
+      ],
+      [
+        0.6485404372215271,
+        0.1505717784166336,
+        0.23112301528453827,
+        -0.08435972034931183
+      ]
+    ],
+    "submitted_workloads": {
+      "run_calls": 31,
+      "pubs": 3284,
+      "submitted_parameter_bindings": 3368,
+      "observable_expectation_evaluations": 3368
+    },
+    "teacher_reference_statevector_evaluations": 2,
+    "purpose": "standalone trainability fixture; no diffusion or generation-quality claim"
+  },
+  "diagram": {
+    "method": "Qiskit text drawer embedded in Matplotlib; no additional dependencies",
+    "files": [
+      "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/figures/quantum_circuit.txt",
+      "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/figures/quantum_circuit.png",
+      "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/figures/quantum_circuit.pdf"
+    ],
+    "visual_inspection": "PNG inspected: parameter labels, directed CX connectivity and local-Z output annotation readable."
+  },
+  "count_definition": "Submitted estimator calls/PUBs/bindings/expectations; repeated bindings across observables are counted again. Excludes independent reference-statevector calls. Not unique circuits, hardware jobs or shots.",
+  "mandatory_checks": {
+    "four_qubits": "passed",
+    "four_inputs": "passed",
+    "sixteen_trainable_weights": "passed",
+    "batch_output_shape": "passed",
+    "finite_output": "passed",
+    "quantum_weight_gradients": "passed",
+    "input_feature_gradients": "passed",
+    "optimizer_updates_and_loss_decrease": "passed"
+  },
+  "standalone_tests": {
+    "status": "passed",
+    "count": 13,
+    "seconds": 3.275,
+    "failures": 0,
+    "errors": 0,
+    "log": "results/phase4_quantum_tests.log"
+  },
+  "regression_tests": {
+    "status": "passed",
+    "count": 50,
+    "seconds": 3.664,
+    "failures": 0,
+    "errors": 0,
+    "log": "results/phase4_regression_tests.log"
+  },
+  "sha256": {
+    "models/quantum_layer.py": "dd3f1075e6854a6d04604540113903ba8d024f91bb0d146a32cd6fdc1970205d",
+    "scripts/check_quantum_layer.py": "b32ddf450c7211ce779524898940b70f5fb82444b972a28abacdc503291af35f",
+    "tests/test_quantum_layer.py": "18c6680cd40d43ec6f3d445af65ab2700e9ac370ae6bc6b1f9958c3c6f2cb1c8",
+    "results/figures/quantum_circuit.png": "65860dbd64a4703637fa0b8709eabf5515f9392802048e945dfdaa66f8dfebd7",
+    "results/figures/quantum_circuit.pdf": "37c8022e8fda7901ecd8a985f29d3fef0902040f0dd0439020bf8338f49e6df9",
+    "results/figures/quantum_circuit.txt": "719efcb3642abaec2f1b3c74a44bb4ff12523df45ad7d75d224907195360cfba"
+  }
+}

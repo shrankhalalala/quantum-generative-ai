@@ -2,7 +2,7 @@
 
 **Paper:** Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications
 
-Prepared 27 October 2026. This is a plan, not evidence of quantum execution. Phase 4 implementation has not started. Its approval does not imply approval for hybrid integration or long training.
+Prepared and subsequently approved on 27 October 2026. This document preserves the implementation plan. Phase 4 has now been completed; actual evidence is in results/phase4_checks.json, test logs and RESULTS.md. Hybrid integration and long training remain outside its approval.
 
 ## Objective and boundaries
 

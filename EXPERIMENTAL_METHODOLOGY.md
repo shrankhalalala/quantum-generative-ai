@@ -2,7 +2,7 @@
 
 **Approved survey title: Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
 
-This experiment is a focused extension of the existing survey of 25 previously selected papers (15 reviewed at mid-evaluation). It does not replace the literature review. Phase 1 specified the experiment; Phase 2 implements and validates the dataset. Phase 3 implements the classical DDPM and validates it with a five-update smoke test. Quantum/hybrid modules and full comparative training remain future work.
+This experiment is a focused extension of the existing survey of 25 previously selected papers (15 reviewed at mid-evaluation). It does not replace the literature review. Phase 1 specified the experiment; Phase 2 implements and validates the dataset. Phase 3 implements the classical DDPM and validates it with a five-update smoke test. Phase 4 implements and validates the standalone quantum module. Hybrid integration and full comparative training remain future work.
 
 ## Objective and hypotheses
 
@@ -55,7 +55,7 @@ In each of two layers apply RY(theta[layer,i,0]) followed by RX(theta[layer,i,1]
 
 Measure four separate local Z expectation values in qubit order 0,1,2,3, not one global ZZZZ observable. Qiskit Pauli labels are little-endian: observables in this order are IIIZ, IIZI, IZII, ZIII. Expectation outputs lie in [-1,1]. Build gates directly, avoiding deprecated circuit-library convenience classes.
 
-Planned APIs: explicitly supplied V2 StatevectorEstimator(default_precision=0, seed=run_seed); EstimatorQNN(default_precision=0, input_gradients=True); explicit ParamShiftEstimatorGradient using the same exact estimator; TorchConnector registers quantum weights as PyTorch parameters. Use ideal local CPU statevector simulation, no token/account and no shot noise. Both zero-precision settings must be supplied because a QNN's nonzero default precision could override the estimator's exact default. Installed gradient source inspection confirms its V2 path calls estimator.run without a precision override, so it inherits the estimator's zero default; its constructor has no precision keyword. Phase 4 must verify actual forward/backward compatibility before integration.
+Implemented APIs: explicitly supplied V2 StatevectorEstimator(default_precision=0, seed=run_seed); EstimatorQNN(default_precision=0, input_gradients=True); explicit ParamShiftEstimatorGradient using the same exact estimator; TorchConnector registers quantum weights as PyTorch parameters. Use ideal local CPU statevector simulation, no token/account and no shot noise. Both zero-precision settings must be supplied because a QNN's nonzero default precision could override the estimator's exact default. Installed gradient source inspection confirms its V2 path calls estimator.run without a precision override, so it inherits the estimator's zero default; its constructor has no precision keyword. Actual forward/backward compatibility passed standalone Phase 4 tests; hybrid integration remains Phase 5.
 
 Mandatory tests: four qubits; four inputs; 16 weights; batched output (B,4); finite outputs; finite, nonzero aggregate quantum gradients and input gradients for a nondegenerate initialization; optimizer updates quantum weights; a small target-fitting loss decreases. Test observable order and deterministic exact expectations too. Gradients chain from loss through decoder, measurements, rotations, pi*tanh, encoder and timestep encoding. Do not advance if tests fail.
 
@@ -137,3 +137,28 @@ A single CPU smoke run (seed 11, 1,000 training rows, five optimizer updates, 80
 Reverse sampling draws an (N,32) Gaussian tensor, then full-row noise at each non-final step before chunked denoiser evaluation. Thus random draws are independent of inference chunk size and model construction. Optional explicit tensors support later common-random-number pairing. Every step checks finite values/shapes and normalized max absolute amplitude against a diagnostic limit 100, raising rather than clipping if unstable. It runs no_grad/eval and restores the caller's mode. Timing measures CPU wall-clock training and sampling separately; warm-up is recorded outside training, which includes validation/checkpoint overhead. Actual figures and timings are in RESULTS.md and the per-run JSON.
 
 No full training has run. Five-update timing extrapolation is limited: first-update Adam overhead is visible, small CPU kernels and validation/checkpoint cost affect estimates, and fractions with short final batches may differ from a full-batch estimate. Classical update cost cannot predict parameter-shift quantum cost. The visibly noisy smoke samples and modest validation-MSE change do not establish convergence or useful generation. Required schedule/prior mismatch remains unchanged. Before any long run, discuss budget/convergence and later quantum pilot cost; keep paired-model budgets identical.
+
+
+## Phase 4 implementation and scientific interpretation
+
+The approved circuit is implemented directly with four encoding RY gates, 12 total RY gates, eight RX gates and six directed CX gates. Four input parameters and 16 trainable weights are explicitly ordered, without relying on lexical sorting. The layer computes
+
+\[
+a_i=\pi\tanh(h_i),\qquad
+z_j=\langle\psi(a,\theta)|Z_j|\psi(a,\theta)\rangle,
+\quad j=0,1,2,3.
+\]
+
+The 16 weights use an independent NumPy default_rng with seed 11 and Uniform[-pi/4,pi/4), converted to float32 for TorchConnector. The inputs remain CPU float32 tensors with their autograd history. Qiskit's statevector arithmetic is higher precision internally; the installed connector returns float32 outputs/Jacobians. We do not claim float64 Torch gradcheck compatibility.
+
+For a single-use RY/RX parameter the parameter-shift derivative is half the difference in expectations at angle +/-pi/2. The input encoding further requires the chain-rule factor pi*(1-tanh(h_i)^2). TorchConnector contracts the QNN input/weight Jacobians with the downstream loss gradient. Its internal detached NumPy interface is part of a custom Torch autograd function; the wrapper must not manually detach its features before invoking it. Aggregate nonzero input and weight gradients and a preceding Linear module test verify this chain empirically. Gradients can vanish for symmetric/saturated states, so nondegenerate moderate features and nonzero weights are used for acceptance fixtures.
+
+Both StatevectorEstimator.default_precision and EstimatorQNN.default_precision are zero. The explicit ParamShiftEstimatorGradient shares the same estimator; inspected installed source confirms the gradient path inherits estimator precision without a shot-noise override. All results are ideal CPU simulation, with no hardware account, API token, shots or cloud execution.
+
+Independent Statevector binding/expectation calculations check the QNN's outputs. Single-qubit-X basis-state tests check local-Z order IIIZ, IIZI, IZII, ZIII. Central finite differences use step 0.001 and absolute/relative tolerances 0.0003/0.005, comparing all eight input-feature derivatives in a two-row batch and all 16 quantum-weight derivatives for a fixed weighted-output loss. Tests also verify batched/individual consistency, exact repeatability, registered parameter count and state-dict reload.
+
+The toy optimization uses two fixed feature vectors. A teacher circuit uses the student's initial weights plus a fixed linearly spaced offset from 0.1 to 0.25 radians, producing reachable targets via an independent Statevector calculation. Only the student's 16 circuit weights are optimized: ten Adam updates at learning rate 0.01, recording all 11 loss values, input/weight gradient norms and parameter displacement. This is a controlled trainability check, not a dataset experiment, classical-vs-quantum comparison or generative-quality result.
+
+Measured two-row forward/backward submitted-workload instrumentation counts one forward primitive call with four PUBs/eight expectations, and one backward call with 320 PUBs/320 expectations (two parameter shifts × 20 circuit parameters × two rows × four observables). Counts describe submitted binding instances and observable evaluations; bindings repeated across observables count again. They are not counts of unique circuits, physical hardware jobs/shots, or an instrument inside the statevector engine. Instrumentation overhead is included in reported simulator timings. Independent reference-Statevector work is excluded from estimator counters and identified separately.
+
+The standalone probe and ten-update toy fit passed. All 13 new standalone tests and all 50 regression tests passed. Numerical errors, timing breakdowns and toy loss history are reported in RESULTS.md and results/phase4_checks.json. Quantum gradient evaluation is more expensive than forward evaluation; this supports measuring the actual hybrid-training/sampling workload in Phase 5 before choosing a full experiment budget. No hybrid DDPM, generation-quality test or quantum advantage result has been produced in Phase 4.

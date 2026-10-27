@@ -1,0 +1,4 @@
+Matplotlib is building the font cache; this may take a moment.
+Standalone quantum checks passed: /Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase4_checks.json
+Two-row forward=0.004612s; backward=0.144488s
+Ten toy updates: MSE 0.018879812 -> 0.003244146, time=1.575515s

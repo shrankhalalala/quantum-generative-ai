@@ -1,6 +1,6 @@
 # Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications
 
-A focused synthetic time-series diffusion experiment extending the existing survey of 25 selected research papers. **Current stage: Phase 3 complete — classical DDPM implementation and five-update smoke validation.** Full training, quantum circuit and hybrid comparisons remain future work. Phase 4 awaits explicit approval.
+A focused synthetic time-series diffusion experiment extending the existing survey of 25 selected research papers. **Current stage: Phase 4 complete — standalone trainable four-qubit layer validated.** Classical smoke validation and the dataset are complete. Hybrid integration, full training and comparisons remain future work; Phase 5 awaits approval.
 
 ## Setup
 
@@ -42,13 +42,13 @@ training/                         implemented shared trainer and smoke plots
 evaluation/                       Phase 6; metrics/comparison not yet created
 experiments/                      Phase 6; run_experiments not yet created
 results/figures, tables, checkpoints, samples/  computed data/smoke artifacts
-tests/test_phase1.py, test_phase2.py, test_phase3.py  37 tests
+tests/test_phase1.py, test_phase2.py, test_phase3.py, test_quantum_layer.py  50 tests
 EXPERIMENTAL_METHODOLOGY.md        scientific design
 IMPLEMENTATION_EXPLANATION.md      file guide and presentation explanation
 RESULTS.md                        only measured outcomes/status
 ```
 
-Package initializers have no execution side effects. Models, diffusion and training programs are now implemented for the classical baseline. Future `models/quantum_layer.py`, `models/hybrid_denoiser.py`, `evaluation/metrics.py`, `evaluation/compare_models.py` and `experiments/run_experiments.py` will be created in their approved phases.
+Package initializers have no execution side effects. Models, diffusion and training programs are now implemented for the classical baseline. The standalone `models/quantum_layer.py` is implemented. Future `models/hybrid_denoiser.py`, `evaluation/metrics.py`, `evaluation/compare_models.py` and `experiments/run_experiments.py` will be created in their approved phases.
 
 ## Scientific decisions
 
@@ -101,7 +101,7 @@ The smoke artifacts already exist; the command intentionally refuses to overwrit
 
 The default smoke validates after every update. An explicitly budgeted run defaults to validation every 63 updates and at the final update; `--validation-every` can override it. Every epoch shuffles once and keeps the final short batch. The validation noise/timesteps are fixed across checkpoints and model/seed comparisons. Separate Torch Generators isolate shuffling, training timesteps, training noise and reverse-sampling randomness.
 
-Implemented architecture: learned Embedding(20,16) + noisy 32-vector → concat 48 → Linear/SiLU/Linear encoder 48→16→4 → Linear(4,4)/Tanh classical bottleneck → Linear/SiLU/Linear decoder 4→16→32. Baseline count is 1,816. `Denoiser` exposes shared components for Phase 5; later paired models must explicitly copy initial shared states. No hybrid/quantum module is implemented yet.
+Implemented architecture: learned Embedding(20,16) + noisy 32-vector → concat 48 → Linear/SiLU/Linear encoder 48→16→4 → Linear(4,4)/Tanh classical bottleneck → Linear/SiLU/Linear decoder 4→16→32. Baseline count is 1,816. `Denoiser` exposes shared components for Phase 5; later paired models must explicitly copy initial shared states. The standalone quantum module is now validated; the hybrid diffusion model is not implemented yet.
 
 Outputs of the existing smoke run:
 
@@ -115,8 +115,40 @@ Sampling starts from Gaussian noise, iterates code times 19→0 with DDPM poster
 
 Checkpoint inference reload is supported; exact interrupted-training resume is not yet implemented. Epoch counts distinguish complete and partial passes. Recorded update-time extrapolations come from only five updates and exclude validation/checkpoint overhead; they do not establish convergence or quantum runtime. Smoke outputs remain visibly noise-like and cannot demonstrate time-series fidelity.
 
-## Phase 4, after explicit approval
+## Phase 4 commands and outputs
 
-Implement only the standalone four-qubit RY-encoded, two-layer RY/RX/CX circuit and EstimatorQNN/TorchConnector module. Verify four inputs, 16 trainable circuit parameters, four local Z outputs, exact simulator behavior, input/weight gradients and optimizer updates before integrating it. Hybrid integration remains Phase 5; comparative experiments remain Phase 6.
+The standalone layer uses four qubits, four inputs, two RY/RX ansatz layers (16 weights), directed CX chains and four local Z expectations. Feature angles are `pi*tanh(h)` and both EstimatorQNN and StatevectorEstimator use zero precision. Input gradients are enabled. CPU float32 is required at the Torch boundary; Qiskit computes exact statevector expectations internally. These are ideal simulation results, without shots or hardware execution.
 
-Phase 3 is recorded in a separate commit, `feat: implement classical DDPM training sampling and smoke validation`. Phases 1 and 2 were published previously; Phase 3 is being published on 27 October 2026. The detailed standalone quantum-layer plan is in [PHASE4_PLAN.md](PHASE4_PLAN.md). Phase 4 implementation requires explicit approval; stop after each phase.
+Run only the standalone tests, or run all tests:
+
+```bash
+PYTHONHASHSEED=0 .venv/bin/python -m unittest discover -s tests -p test_quantum_layer.py -v
+PYTHONHASHSEED=0 .venv/bin/python -m unittest discover -s tests -v
+```
+
+Explicit standalone diagnostic (default artifacts already exist, so reproducing into a new directory avoids overwriting them):
+
+```bash
+XDG_CACHE_HOME=/tmp/qgai-cache MPLCONFIGDIR=/tmp/qgai-matplotlib PYTHONHASHSEED=0 .venv/bin/python scripts/check_quantum_layer.py --results-dir results/phase4_repeat
+```
+
+The command runs a timed two-row forward/backward probe, checks independent Statevector expectations and all 8 feature/16 weight derivatives by finite differences, and performs exactly ten Adam updates at LR 0.01 against a reachable teacher target. This small optimization demonstrates trainability only. It does not train a diffusion model or evaluate generation quality. No work executes at import.
+
+Files:
+
+- `models/quantum_layer.py`: explicit circuit builder, input-angle map, EstimatorQNN/TorchConnector wrapper and submitted-workload instrumentation.
+- `tests/test_quantum_layer.py`: 13 standalone tests; the full suite has 50 passing tests.
+- `scripts/check_quantum_layer.py`: reproducible diagnostic, independent reference calculations, toy optimization and circuit export.
+- `results/phase4_checks.json`: measured output, gradients, finite-difference discrepancies, loss history, timings, configuration/environment, workload counts, verification logs and artifact hashes.
+- `results/phase4_quantum_tests.log`, `phase4_regression_tests.log`, `phase4_execution.log`: raw execution evidence.
+- `results/figures/quantum_circuit.png`, `.pdf`, `.txt`: actual circuit with parameter order/connectivity; exported from Qiskit's text drawer through Matplotlib without installing an optional drawing dependency.
+
+`QuantumLayer(seed=11)` uses a local NumPy Generator for weights drawn uniformly from [-pi/4,pi/4), avoiding all-zero initialization and global RNG consumption. There are 16 trainable scalars in one registered Torch parameter tensor. State-dict reload restores identical expectations. The tests verify that gradients can reach a small preceding classical Linear layer; hybrid DDPM integration has not occurred.
+
+Workload counts mean submitted primitive calls/PUBs, parameter-binding instances and observable expectations. Binding instances repeated for different observables count again. They are not unique circuits, hardware jobs or shots. In the measured two-row probe the forward call submitted 4 PUBs/8 expectations and backward submitted 320 PUBs/320 expectations. See the result record for definitions and separate timing measurements.
+
+## Phase 5, after explicit approval
+
+Implement `models/hybrid_denoiser.py` by replacing only the four-dimensional classical bottleneck. Reuse the existing timestep encoder, classical encoder/decoder, DDPM, optimizer, validation and sampler. Explicitly pair initial shared classical states. Verify end-to-end diffusion gradients and parameter counts, then measure a short hybrid-training/sampling pilot before discussing any full experiment budget. The optional parameter-matched classical control can be assessed in this phase. Formal comparisons remain Phase 6.
+
+Published commits: Phase 1 `f0417c2`, Phase 2 `84ea5d3`, Phase 3 `cda3611`. Phase 4 is recorded in its own implementation commit for publication on 27 October 2026. Its approved plan is retained in PHASE4_PLAN.md. Suggested Phase 4 commit: `feat: add four-qubit quantum bottleneck and standalone gradient validation`. Stop after each phase for approval.
