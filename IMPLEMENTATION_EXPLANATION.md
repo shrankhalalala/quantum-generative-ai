@@ -1,98 +1,46 @@
-# Implementation explanation
+# Implementation guide
 
-**Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
+The pipeline loads normalized training sequences, adds known diffusion noise, trains a timestep-conditioned noise predictor, then generates new sequences by reversing the noise process. The hybrid uses the same pipeline with a quantum bottleneck. Equations and comparison controls are in [EXPERIMENTAL_METHODOLOGY.md](EXPERIMENTAL_METHODOLOGY.md).
 
-This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Phase 3 now implements and smoke-tests the classical DDPM; the standalone quantum layer is now validated in Phase 4; Phase 5 now integrates the hybrid model and validates a paired five-update pilot; full training and quality comparisons remain future work.
+## Configuration and data
 
-## How to explain the experiment
+| File | Inputs → outputs; main functions |
+|---|---|
+| config.py | Immutable dataset/model/training/evaluation settings; `validate` checks consistency and `to_dict` serializes them. |
+| utils/reproducibility.py | Seed → reproducible Python/NumPy/Torch streams; `environment_metadata` records versions and `save_json` rejects non-finite metadata. |
+| data/dataset.py | Config → raw (1400,32) sequences and parameters. `generate_dataset` evaluates the sinusoid equation; `make_splits` and `nested_subsets` select deterministic row indices. |
+| data/normalization.py | Selected training entries → scalar mean/std. `transform` computes (x-mu)/sigma; `inverse_transform` restores raw units; `prepare_splits` reuses the training fit. |
+| data/artifacts.py | Arrays/config ↔ NPZ/JSON files. `save_bundle` persists data, indices and provenance; `load_bundle` verifies hashes/equation/selections/statistics; `normalized` prepares a chosen condition. |
+| data/plotting.py | Dataset → representative series, histogram and ACF PNG/PDF figures. `plot_dataset` uses fixed held-out examples. |
+| data/generate_data.py | CLI → saved dataset, summaries and figures; `--verify-only` checks existing artifacts. |
+| utils/time_series.py | (N,L) sequences → per-sequence or mean ACF. `sequence_acf` uses row-wise demeaning and a full-window variance denominator; `mean_acf` averages rows. |
 
-We draw short noisy sinusoids with variable shape. A diffusion process adds known Gaussian noise. A timestep-conditioned network learns to predict that noise. Sampling starts from random noise and uses the prediction in an iterative reverse process. The comparison asks what changes when only a four-feature bottleneck becomes a trainable quantum circuit. Circuit expectations become ordinary decoder inputs, and the loss gradient updates both quantum angles and classical weights.
+Raw arrays remain float64; training converts normalized arrays to float32. Validation/reference rows never fit normalization.
 
-The required schedule only weakly corrupts the data by its final step, which makes sampling from Gaussian noise a modeling limitation. We must explain this even if denoising validation loss improves. Simulation runtime cannot be presented as quantum hardware runtime or speedup.
+## Models and diffusion
 
-## Files implemented in Phase 1
+| File | Inputs → outputs; main functions |
+|---|---|
+| models/classical_denoiser.py | Noisy (B,32) + timestep (B,) → predicted noise (B,32). `Denoiser` separates embedding, encoder, bottleneck and decoder; subclasses provide the baseline or bias-free control. |
+| models/quantum_layer.py | Features (B,4) → four local-Z expectations. `build_quantum_circuit` orders inputs, 16 weights and observables; `QuantumLayer` applies pi*Tanh and TorchConnector. `CountingStatevectorEstimator` counts submitted workloads. |
+| models/hybrid_denoiser.py | Same inputs/outputs as the baseline; `HybridDenoiser` replaces only its bottleneck with QuantumLayer. |
+| models/factory.py | Model choice/seed → initialized model. `make_model` and `copy_shared_state` pair common weights without sharing storage; `shared_state_sha256` identifies those values. |
+| diffusion/noise_schedule.py | Config → fixed schedule buffers. `add_noise` implements forward corruption; `reverse_mean` and `reverse_step` implement the DDPM reverse update. |
+| diffusion/sampling.py | Model/schedule/seed → generated (N,32) tensor, timing and magnitude diagnostics. `sample` iterates all 20 reverse steps without gradients and adds no noise at the final step. |
 
-| File | Purpose, inputs and outputs | Important operations and connections |
-|---|---|---|
-| config.py | Immutable dataclass specification; input is explicit constructor overrides; output is validated configuration/dictionary | Dataset/model/diffusion/training/evaluation sections; validate rejects inconsistent settings; quantum_weight_count computes qubits × layers × rotations = 16; to_dict produces JSON-compatible data. Imported by checks and future pipelines. |
-| utils/reproducibility.py | seed_everything(seed) seeds Python/NumPy/Torch and returns a dedicated Generator; environment_metadata() returns platform/package dictionary; save_json(path,payload) writes metadata | Separate Generator avoids consuming global NumPy RNG; Torch deterministic algorithms enabled; hash seed must be set before Python starts. Strict JSON refuses NaN/Inf. No global changes on import. Future runs must save config, independent stream seeds, normalization, hardware and version metadata. |
-| scripts/check_environment.py | CLI accepts optional --output path; writes results/environment.json | Checks config and scientific/API imports, repeatability, a simple CPU autograd derivative (d(x²)/dx=2x), and plotting without a display. Records GPU availability but runs CPU. Does not create the experimental QNN or verify its gradients. |
-| tests/test_phase1.py | unittest suite, no dataset/training inputs | Verifies finalized defaults, invalid config rejection, exact RNG repeatability, invalid seeds and JSON persistence/finiteness. All arrays here are tiny random draws for checks, not generated research time series. |
-| requirements.txt / requirements-lock.txt | Dependency inputs to pip; output is the isolated scientific environment | Direct version pins versus complete transitive snapshot. pip check verifies metadata consistency, not mathematical correctness. |
-| package __init__.py files | Package names; no inputs or computation | Empty aside from descriptions. Importing them cannot launch experiments. |
-| README.md | Setup/execution guide | Provides only commands for programs that exist, phase boundaries and next steps. |
-| EXPERIMENTAL_METHODOLOGY.md | Scientific specification | Contains dataset, models, forward/reverse equations, metric definitions, fair comparisons and validity threats. |
-| RESULTS.md / results/environment.json | Evidence/status | Distinguishes executed environment checks from unexecuted scientific outcomes; never substitutes pilot checks for model results. |
-| .gitignore | Local Git ignore policy | Excludes environment/cache and bulk dataset/checkpoints; retain these separately as experimental artifacts. Results/provenance files remain trackable. |
+The timestep embedding identifies the diffusion noise level, not observation time. Four learned features become bounded circuit angles; the circuit returns expectations rather than sampled bitstrings. TorchConnector supplies a custom backward mapping, letting the loss gradient reach circuit weights and earlier classical layers. Features must remain Torch tensors before the connector.
 
-## Files implemented in Phase 2
+## Training and checks
 
-| File | Inputs → outputs | Functions, mathematics and connections |
-|---|---|---|
-| data/dataset.py | DatasetConfig → SyntheticDataset and integer indices | `generate_dataset` draws the signal parameters and noise, `clean_signal` broadcasts per-row parameters over t=arange(32)/32, `make_splits` permutes all 1,400 row IDs, `nested_subsets` permutes train IDs once per seed and takes prefixes. Validators check dimensions, parameter ranges, equation reconstruction and split coverage. |
-| data/normalization.py | Selected training array → scalar NormalizationStats; arrays + saved stats → normalized arrays | `fit_normalization` computes pooled mean and population std across the selected subset. `transform`: (x-mu)/sigma, `inverse_transform`: z*sigma+mu. `prepare_splits` applies one recorded transform to train/validation/test; rejects non-finite arrays and zero/near-zero scales. |
-| data/artifacts.py | Dataset/config/output directory → four saved NPZ/JSON artifacts and DatasetBundle | `save_bundle` stores raw signal parameters/noise, split/subset indices, stats and provenance; overwrite requires an explicit flag. `load_bundle` rejects hash/config/selection/statistics mismatches and disables pickle. `normalized(seed,size)` prepares paired-model inputs from saved stats. `summarize` computes shape/mean/std/min/max; `sha256` identifies files. |
-| utils/time_series.py | Finite (N,L) arrays and max lag → (N,max_lag+1) ACFs or mean curve | `sequence_acf` demeans each row, uses the full sum of squared deviations as denominator for every lag, and sums overlapping products. `mean_acf` weights rows equally; never concatenates sequence boundaries. Near-constant rows have undefined ACF and trigger an error. The same functions will be used in Phase 6. |
-| data/plotting.py | Verified DatasetBundle → three PNG/PDF figure pairs | `plot_dataset` uses first six fixed held-out IDs; plots signals, pooled amplitude histogram, individual ACFs and 200-row held-out mean ACF. No favorable-example selection. Matplotlib headless backend, 300 dpi and embedded TrueType PDF fonts. |
-| data/generate_data.py | CLI/default configuration → saved dataset, summaries, figures and validation records | Orchestrates generation → persistence/verified reload → plots → result/provenance writes. `--verify-only` only reads/checks existing data; `--overwrite` explicitly regenerates. The `__main__` guard prevents execution on import. |
-| tests/test_phase2.py | Fixed specification and isolated temporary artifact directories → 15 dataset test results | Tests exact repeats and seed changes, valid parameters/noise, global RNG independence, disjoint fixed splits, nested prefixes for all seeds, per-subset stats, inverse transforms, leakage perturbations, hand-calculated ACF and checksum/config failure handling. Full suite also includes five Phase 1 tests. |
+| File | Inputs → outputs; main functions |
+|---|---|
+| training/train.py | Model/data/explicit budget → losses, timings and best checkpoint. `train_model` uses Adam and noise MSE; `validation_draws` fixes corruption; `validation_loss` weights all entries equally; `restore_checkpoint` reloads inference state. The CLI also samples, inverse-normalizes and saves results. |
+| training/plotting.py | Recorded losses/generated arrays → model-labeled PNG/PDF figures through `plot_run`. |
+| scripts/check_environment.py | Installed environment → import/API, RNG, autograd and rendering checks. |
+| scripts/check_quantum_layer.py | Standalone layer → output/gradient/timing report and diagram. `statevector_outputs` is an independent reference; `finite_difference_check` checks derivatives; `optimize_toy` verifies ten optimizer updates. |
+| scripts/check_hybrid_model.py | Existing paired pilot records → reproducibility and cost report. `verify_pilots` checks matching settings, joint updates, workloads and exact checkpoint-to-sample regeneration. |
+| tests/ | Configuration, data/leakage, DDPM mathematics, quantum gradients and hybrid integration tests. Latest full suite: 58 passed. |
 
-The NPZ file stores raw unnormalized values; training will call `bundle.normalized(seed,size)` and convert those arrays to float32 Torch tensors. Storing indices instead of twelve duplicate datasets keeps subset membership explicit and prevents stale copies. Float64 raw storage avoids extra rounding in equation validation.
+One optimizer updates all classical and quantum parameters. Separate RNG streams keep validation independent of training draws. Per-component gradient norms and parameter changes verify joint optimization; a shared seed alone cannot guarantee paired initial weights, so the factory copies them explicitly.
 
-## Files implemented in Phase 3
-
-| File | Inputs → outputs | Key functions, mathematics and connections |
-|---|---|---|
-| models/classical_denoiser.py | Noisy CPU float32 (B,32), int64 code times (B,) → noise prediction (B,32) | `Denoiser` defines separately named time embedding, encoder, replaceable bottleneck and decoder. `ClassicalDenoiser` supplies affine 4→4 + Tanh. `trainable_parameters` measures the count 1,816; all components and input tensors receive gradients. |
-| diffusion/noise_schedule.py | DiffusionConfig → fixed Torch buffers; clean/noisy sequences + time/noise → forward/reverse tensors | `add_noise` computes sqrt(alpha_bar)*x0 + sqrt(1-alpha_bar)*epsilon. `reverse_mean` uses predicted epsilon; `reverse_step` adds sqrt(posterior_variance)*z, with variance exactly zero at time 0. Buffers are saved with checkpoints, not optimized. |
-| diffusion/sampling.py | Model, schedule, N, seed and optional explicit noise tensors → SamplingResult | `sample` begins from Gaussian noise and iterates all 20 reverse steps under no_grad/eval. Chunked inference separates memory/batch cost from random draws. Return includes (N,32) samples, wall time and per-step max magnitudes; invalid/unstable results raise errors rather than clipping. |
-| training/train.py | Compatible model, normalized train/validation tensors, explicit config budget and provenance → TrainingResult, best checkpoint; CLI also outputs samples/plots/JSON | `stream_seeds` separates RNG domains; `validation_draws` fixes validation times/noise. `validation_loss` sums squared errors then divides by total entries. `train_model` minimizes mean squared predicted-noise error with Adam, retains short batches, records complete/partial epochs and chooses best validation checkpoint. `restore_checkpoint` loads safely for inference. `main` verifies saved data, casts normalized arrays to float32, runs only the supplied budget, restores best model, samples and inverse-normalizes. |
-| training/plotting.py | Actual run loss history and inverse-normalized outputs → two PNG/PDF figure pairs | `plot_run` plots interval-average training loss and fixed-draw validation loss, plus generated indices 0–5. Smoke titles state that these are not convergence/quality evidence. |
-| tests/test_phase3.py | Small deterministic fixtures/temp checkpoints → 17 Phase 3 tests | Verifies gradient/timestep behavior, analytic DDPM buffers/formulas, final-step noise exclusion, sampler stability/reproducibility, exact optional-noise reverse calculation, validation weighting/RNG isolation, optimizer updates, short batches, repeated training, safe best-checkpoint reload, budget/overwrite/input/shape rejection. Total suite: 37. |
-
-Presentation explanation: the network predicts the known added noise, not the original clean signal directly. The timestep embedding tells it how much noise the forward schedule added. Forward noising is a direct formula, but generation needs 20 iterative reverse steps. Adam updates every registered network parameter together. Validation uses a fixed corruption draw so checkpoint comparisons are less noisy; the held-out reference does not pick checkpoints.
-
-The five-step run is a functional smoke test: its outputs are visibly noisy. A small denoising-MSE improvement cannot be presented as realistic generation. The imposed schedule ends far from pure noise, so its Gaussian initialization mismatch remains a validity limitation even after more training. Training and sample timings are CPU classical-model timings; standalone quantum simulation timings are now measured in Phase 4; the full hybrid workload still needs a Phase 5 pilot.
-
-## Future file map (specified, not implemented)
-
-- evaluation/metrics.py (Phase 6): inverse-transformed generated/reference arrays → marginal distribution metrics and mean per-sequence biased ACF errors. Correlations never cross sequence boundaries.
-- evaluation/compare_models.py (Phase 6): raw per-run records → repeated-run means/sample standard deviations and provenance-preserving comparisons.
-- experiments/run_experiments.py (Phase 6): approved config/budget → model × fraction × seed runs with shared training/evaluation procedures; no automatic execution at import.
-- evaluation/plotting.py (Phase 7 or earlier phase-specific plots): actual data/losses/metrics → Matplotlib PNG/PDF; fixed sample selection, labels, no invented values.
-
-The methodology specifies complete formulas and tensor dimensions so these implementations can be defended during evaluation. Explanations will be updated with actual functions and test evidence as each phase is approved and completed.
-
-## Files implemented in Phase 4
-
-| File | Inputs → outputs | Main functions and connections |
-|---|---|---|
-| models/quantum_layer.py | Finite CPU float32 features (B,4) → local-Z expectations (B,4) | `build_quantum_circuit` returns the four-qubit circuit, explicitly ordered inputs/weights and observables. `QuantumLayer` applies pi*Tanh, then TorchConnector backed by an exact EstimatorQNN. `weight` exposes the same 16 registered optimizer parameters. `CountingStatevectorEstimator` records submitted workload counts without changing ideal expectations. |
-| scripts/check_quantum_layer.py | Explicit CLI invocation → diagnostic JSON/log, toy loss history and circuit files | `statevector_outputs` independently binds the circuit and computes exact observables. `finite_difference_check` compares all fixture-feature and weight derivatives to autograd, restoring perturbed weights afterward. `optimize_toy` performs exactly ten Adam updates against a reachable teacher target. `draw_circuit` exports the actual Qiskit text diagram using existing Matplotlib. `main` records warm-up, forward/backward timing, counters and failures; it refuses to overwrite an existing report. |
-| tests/test_quantum_layer.py | Deterministic fixtures → 13 standalone tests | Checks structure/gate/parameter order, observable endianness, ideal precision settings, batched/individual outputs, independent Statevector agreement, finite-difference gradients, preceding-classical-layer gradients, optimizer updates/loss decrease, invalid input rejection, workload counters, reproducible initialization/outputs and state-dict reload. |
-| results/phase4_checks.json and logs | Actual executions → evidence | Contains all eight mandatory-check statuses, concrete outputs/gradient norms, all derivative discrepancies, eleven toy losses, parameter changes, CPU/thread/package metadata and submitted-workload counters. New test counts/timings and artifact hashes are appended after the full suite and visual QA. |
-| results/figures/quantum_circuit.* | Actual circuit → PNG/PDF/TXT | Shows the exact encoding and trainable parameter placement with directed CX connections. Text-drawer embedding avoids an extra optional drawing dependency. |
-
-For presentation: four classical numbers become four bounded angles. Each RY gate places its qubit into a superposition; trainable RY/RX gates and CX interactions transform the joint four-qubit state. The outputs are expectation values, not sampled bitstrings. A loss on these four values produces gradients for the 16 rotation angles and for the original features. Thus an earlier classical encoder can learn along with the circuit in a future hybrid model.
-
-The parameter-shift rule evaluates circuits at shifted angles to form derivatives. TorchConnector uses these derivatives in its custom backward function. Its internal NumPy conversion does not itself break autograd because the connector supplies the backward mapping; manually converting features to NumPy before the connector would break the preceding classical graph. The code avoids that mistake and tests the full feature-angle-circuit chain.
-
-The independent toy fit is a reachable-target test, not sinusoidal generation. The ten updates reduced its recorded MSE and moved the quantum parameters. This validates optimization wiring. It does not imply that the hybrid diffusion model will beat the classical model or require less data. Phase 5 will integrate only the bottleneck and measure the actual combined workload; Phase 6 will perform fair comparative experiments.
-
-## Files implemented or extended in Phase 5
-
-| File | Inputs → outputs | Functions and connection to the experiment |
-|---|---|---|
-| models/hybrid_denoiser.py | Model config, diffusion-step count and seed → HybridDenoiser | Subclasses Denoiser and passes QuantumLayer as its bottleneck. No surrounding encoder/decoder architecture or diffusion formula changes. Its forward interface is still noisy (B,32) + timestep (B,) → predicted noise (B,32). |
-| models/factory.py | Model choice/seed/config → paired initialized model | `make_model` constructs a reference baseline and copies shared initial states into other arms. `copy_shared_state` copies values without aliasing; `shared_state_sha256` records tensor names, shapes, dtypes and values. A local RNG context preserves caller randomness. |
-| models/classical_denoiser.py | Existing baseline plus optional control | Added ParameterMatchedDenoiser: bias-free Linear(4,4)+Tanh, with 16 bottleneck weights. Baseline architecture and original seeded initialization remain unchanged. The factory copies the baseline's bottleneck matrix into this control. |
-| training/train.py | Any model choice + same data/config/budget → checkpoint, losses, gradients, samples and provenance | CLI `--model` selects classical, hybrid or classical_matched. The same `train_model` updates every registered parameter using noise MSE/Adam. `component_gradient_norms` records the diffusion gradient arriving at each component; `component_parameter_changes` shows actual movement; `quantum_workloads` reads submitted estimator counters. Best-checkpoint and sampler code are reused. |
-| training/plotting.py | Actual history/generated arrays + model label → PNG/PDF | Replaced fixed classical titles with selected-model labels. Smoke outputs are explicitly identified as functional tests. |
-| tests/test_hybrid_denoiser.py | Deterministic fixtures/temp checkpoints → eight tests | Verifies only-bottleneck replacement, counts, exact paired states/no storage sharing, seed isolation, original-baseline initialization, end-to-end diffusion gradients, joint optimizer updates, checkpoint reload, sampler repeatability and invalid input rejection. |
-| scripts/check_hybrid_model.py | Existing paired pilot files + saved dataset → verification/cost report | `verify_pilots` checks matching config/data/seeds/normalization/initial shared hash, actual component changes, submitted workloads, checkpoint/sample hashes and exact sample regeneration. It reports cost coefficients for an unspecified full budget; no training starts from this script or module import. |
-
-Presentation explanation: Phase 4 proved that the circuit itself is trainable. Phase 5 places it inside the denoiser's computation graph. The loss compares the final 32 noise predictions to known diffusion noise; backward passes through the decoder, four quantum expectations, bounded angle map, encoder and time embedding. All these parts learn together through the existing Adam optimizer. Recorded component norms and actual parameter changes verify this on real normalized training batches.
-
-A shared seed alone cannot ensure paired initial weights, because baseline, control and circuit constructors consume different random values. Explicitly copying the common state fixes that problem. Independent storage matters: updating one model must not silently change another model. The factory and tests verify both conditions.
-
-The five updates process only 80 examples (0.08 effective epochs) in each arm. Their loss curves and generated samples are saved, but they do not demonstrate convergence or realistic time-series fidelity. Measured hybrid update/sampling times are much greater than the small classical network's timings on this simulator; they are simulation costs and give no hardware speedup result. Full quality/scarcity evaluation belongs to Phase 6 after budget approval.
+Imports never launch experiments. Full budgets remain unset, and all training commands require an explicit smoke/step/epoch budget. Current results are short functional pilots; formal quality and scarcity evaluation are pending. See [RESULTS.md](RESULTS.md).
