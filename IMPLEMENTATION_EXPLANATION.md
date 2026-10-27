@@ -2,7 +2,7 @@
 
 **Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
 
-This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Models and training remain future work.
+This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Phase 3 now implements and smoke-tests the classical DDPM; quantum/hybrid models and full training remain future work.
 
 ## How to explain the experiment
 
@@ -39,11 +39,23 @@ The required schedule only weakly corrupts the data by its final step, which mak
 
 The NPZ file stores raw unnormalized values; training will call `bundle.normalized(seed,size)` and convert those arrays to float32 Torch tensors. Storing indices instead of twelve duplicate datasets keeps subset membership explicit and prevents stale copies. Float64 raw storage avoids extra rounding in equation validation.
 
+## Files implemented in Phase 3
+
+| File | Inputs → outputs | Key functions, mathematics and connections |
+|---|---|---|
+| models/classical_denoiser.py | Noisy CPU float32 (B,32), int64 code times (B,) → noise prediction (B,32) | `Denoiser` defines separately named time embedding, encoder, replaceable bottleneck and decoder. `ClassicalDenoiser` supplies affine 4→4 + Tanh. `trainable_parameters` measures the count 1,816; all components and input tensors receive gradients. |
+| diffusion/noise_schedule.py | DiffusionConfig → fixed Torch buffers; clean/noisy sequences + time/noise → forward/reverse tensors | `add_noise` computes sqrt(alpha_bar)*x0 + sqrt(1-alpha_bar)*epsilon. `reverse_mean` uses predicted epsilon; `reverse_step` adds sqrt(posterior_variance)*z, with variance exactly zero at time 0. Buffers are saved with checkpoints, not optimized. |
+| diffusion/sampling.py | Model, schedule, N, seed and optional explicit noise tensors → SamplingResult | `sample` begins from Gaussian noise and iterates all 20 reverse steps under no_grad/eval. Chunked inference separates memory/batch cost from random draws. Return includes (N,32) samples, wall time and per-step max magnitudes; invalid/unstable results raise errors rather than clipping. |
+| training/train.py | Compatible model, normalized train/validation tensors, explicit config budget and provenance → TrainingResult, best checkpoint; CLI also outputs samples/plots/JSON | `stream_seeds` separates RNG domains; `validation_draws` fixes validation times/noise. `validation_loss` sums squared errors then divides by total entries. `train_model` minimizes mean squared predicted-noise error with Adam, retains short batches, records complete/partial epochs and chooses best validation checkpoint. `restore_checkpoint` loads safely for inference. `main` verifies saved data, casts normalized arrays to float32, runs only the supplied budget, restores best model, samples and inverse-normalizes. |
+| training/plotting.py | Actual run loss history and inverse-normalized outputs → two PNG/PDF figure pairs | `plot_run` plots interval-average training loss and fixed-draw validation loss, plus generated indices 0–5. Smoke titles state that these are not convergence/quality evidence. |
+| tests/test_phase3.py | Small deterministic fixtures/temp checkpoints → 17 Phase 3 tests | Verifies gradient/timestep behavior, analytic DDPM buffers/formulas, final-step noise exclusion, sampler stability/reproducibility, exact optional-noise reverse calculation, validation weighting/RNG isolation, optimizer updates, short batches, repeated training, safe best-checkpoint reload, budget/overwrite/input/shape rejection. Total suite: 37. |
+
+Presentation explanation: the network predicts the known added noise, not the original clean signal directly. The timestep embedding tells it how much noise the forward schedule added. Forward noising is a direct formula, but generation needs 20 iterative reverse steps. Adam updates every registered network parameter together. Validation uses a fixed corruption draw so checkpoint comparisons are less noisy; the held-out reference does not pick checkpoints.
+
+The five-step run is a functional smoke test: its outputs are visibly noisy. A small denoising-MSE improvement cannot be presented as realistic generation. The imposed schedule ends far from pure noise, so its Gaussian initialization mismatch remains a validity limitation even after more training. Training and sample timings are CPU classical-model timings; the quantum simulator will need its own measured pilot.
+
 ## Future file map (specified, not implemented)
-- models/classical_denoiser.py (Phase 3): noisy (B,32), timestep (B,) → predicted noise (B,32), using learned time embedding, shared encoder, affine/Tanh bottleneck and decoder.
-- diffusion/noise_schedule.py (Phase 3): beta bounds and T → beta/alpha/cumulative-alpha arrays; schedule buffers drive both forward noising and sampling.
-- diffusion/sampling.py (Phase 3): trained model, schedule and independent RNG → newly generated (B,32) arrays through reverse means and posterior variances. Never copies dataset rows.
-- training/train.py (Phase 3, extended Phase 5): model type, split/subset config and approved budget → losses, timings and best-validation checkpoint. Shared loss is mean squared Gaussian-noise prediction error; validation draws fixed for comparisons.
+
 - models/quantum_layer.py (Phase 4): four encoder features → pi*tanh angles → four RY inputs → two trainable entangling layers → four local Z expectations. QNN and TorchConnector carry input/weight gradients; exactly 16 trainable circuit parameters.
 - models/hybrid_denoiser.py (Phase 5): same inputs/outputs as baseline, swaps only bottleneck and reuses common architecture. Shared parameter initialization must be explicitly copied for paired trials.
 - evaluation/metrics.py (Phase 6): inverse-transformed generated/reference arrays → marginal distribution metrics and mean per-sequence biased ACF errors. Correlations never cross sequence boundaries.

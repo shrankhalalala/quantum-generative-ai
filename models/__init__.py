@@ -1,1 +1,1 @@
-"""models: implementation added in its approved phase."""
+"""Timestep-conditioned denoisers with replaceable bottlenecks. No experiments run on import."""

@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-09",
+  "phase": 3,
+  "status": "passed",
+  "tests": {
+    "count": 37,
+    "elapsed_seconds": 1.047,
+    "failures": 0,
+    "errors": 0,
+    "log": "results/phase3_tests.log"
+  },
+  "smoke_run": "results/classical_smoke_seed11_n1000.json",
+  "checkpoint_checksum": "passed",
+  "checkpoint_to_saved_generation_exact_repeat": "passed",
+  "no_saved_sample_exactly_copies_a_raw_dataset_row": true,
+  "visual_inspection": "loss and generated-series PNG labels/layout inspected; matching PDFs exported",
+  "long_training_executed": false,
+  "phase4_started": false
+}

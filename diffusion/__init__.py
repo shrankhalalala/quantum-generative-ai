@@ -1,1 +1,1 @@
-"""diffusion: implementation added in its approved phase."""
+"""Shared DDPM noising buffers and reverse sampling. No experiments run on import."""

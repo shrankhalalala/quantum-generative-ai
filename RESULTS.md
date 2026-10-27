@@ -10,24 +10,24 @@ Environment installation/checks: **Passed** on 9 October 2026. Python 3.12.3, ma
 Environment checker: **Passed** configuration/import/API, CPU autograd, repeatable RNG and headless rendering checks. Machine-readable evidence: results/environment.json. The first Matplotlib font-cache build printed cache-path warnings inside the sandbox but completed successfully; README uses writable temporary cache paths.
 Configuration/reproducibility tests: **5 passed**, zero failures, using `python -m unittest discover -s tests -v` (15.515 seconds including first imports). Evidence: results/phase1_checks.json.
 
-Phase 1 recorded in the initial local Git commit. GitHub origin configured; no push performed.
+Phase 1 recorded in the initial local Git commit. GitHub origin configured; Phases 1 and 2 subsequently pushed to origin/master on 9 October 2026.
 Schedule diagnostic (analytic computation only): alpha_bar_20 = 0.8167771026789972, signal coefficient = 0.9037572144547434, noise coefficient = 0.4280454383835936. Saved in results/schedule_diagnostic.json. This documents terminal-prior mismatch; it is not an experimental quality result.
-At the end of Phase 1, no dataset or model had been executed. Dataset generation is now completed in Phase 2; experimental models, quantum execution and training remain unexecuted.
+At the end of Phase 1, no dataset or model had been executed. Dataset generation completed in Phase 2; the classical model and smoke training completed in Phase 3. Quantum execution/full comparisons remain unexecuted.
 
 ## Scientific outcomes
 
 | Outcome | Status |
 |---|---|
 | Dataset summaries and validation plots | Computed and verified in Phase 2 |
-| Classical training and generation quality | Not evaluated |
+| Classical training and generation quality | Five-update smoke completed; converged generation quality Not evaluated |
 | Standalone quantum forward/gradient/update tests | Not evaluated |
 | Hybrid training and generation quality | Not evaluated |
 | Wasserstein, mean/std/variance differences | Not evaluated |
 | ACF preservation/errors | Not evaluated |
-| Training, pilot and reverse-sampling timings | Not evaluated |
+| Training, pilot and reverse-sampling timings | Classical smoke measured; full/quantum timings Not evaluated |
 | Limited-data comparisons across three seeds | Not evaluated |
 | Quantum circuit evaluation counts | Not evaluated |
-| Instantiated model parameter counts | Not evaluated |
+| Instantiated model parameter counts | Classical: 1,816; hybrid/control Not evaluated |
 
 Analytical architecture counts and schedule diagnostics in the methodology are design calculations, not measured model outcomes. Raw computed results will be saved under results/ before being reported here.
 
@@ -54,4 +54,49 @@ Computed artifacts: results/tables/dataset_summary.csv and .json; results/tables
 
 Figures (each PNG/PDF): results/figures/dataset_representative_series, dataset_amplitude_distribution, dataset_autocorrelation. Their checksums and the held-out mean ACF values are recorded in results/dataset_validation.json.
 
-No denoiser, quantum model, training, reverse generation, generation-quality comparison or timing experiment has run. Phase 2 is recorded in a separate local Git commit with message: `feat: add reproducible sinusoidal dataset pipeline and validation`. Phase 3 awaits explicit approval.
+At the end of Phase 2, no model/training/reverse-generation experiment had run. Phase 3 evidence follows below. Phase 2 is recorded in a separate local Git commit with message: `feat: add reproducible sinusoidal dataset pipeline and validation`. Phase 3 was subsequently approved and implemented.
+
+## Phase 3 — executed classical smoke validation
+
+Commits created before Phase 3: Phase 1 `f0417c2`; Phase 2 `84ea5d3`. Both pushed to origin/master on 9 October 2026. Phase 3 is recorded in a separate commit for publication on 27 October 2026.
+
+All **37 tests passed**, zero failures/errors, in 1.047 seconds (five Phase 1 + 15 Phase 2 + 17 Phase 3). Evidence: results/phase3_tests.log and phase3_checks.json. Checkpoint hash verification, exact regeneration of saved outputs and no exact raw-row copying passed. Loss and generated-series PNGs were visually inspected; matching PDFs exported.
+
+Single measured smoke condition: classical model, seed 11, 1,000-row training subset, five updates, batch 16, Adam LR 0.001, 80 training-example exposures (0.08 effective epochs), CPU float32, required 20-step schedule. This is not full/converged training.
+
+| Computed smoke outcome | Value |
+|---|---:|
+| Trainable parameters | 1816 |
+| Initial validation MSE | 1.020604596 |
+| Best/final validation MSE | 1.017361593 |
+| Best checkpoint update | 5 |
+| Warm-up (seconds; outside training) | 0.057706 |
+| Total training, including validation/checkpoints (seconds) | 0.028980 |
+| Optimizer-loop total (seconds) | 0.008032 |
+| Mean update time (seconds) | 0.001606 |
+| Median update time (seconds) | 0.000720 |
+| Validation total (seconds) | 0.011091 |
+| Checkpoint-write total (seconds) | 0.009432 |
+| Reverse-sampling 200 sequences (seconds) | 0.023875 |
+| Maximum absolute generated amplitude (raw units) | 3.375194 |
+
+Generated shape (200,32), all finite; sampling seed 10011; maximum normalized sample magnitude 5.051081, below diagnostic threshold 100. These samples are visibly noise-like; no useful time-series generation claim follows from this smoke test. Marginal Wasserstein/ACF error and formal held-out quality remain Not evaluated.
+
+Classical runtime extrapolations below are **estimates**, not measured training runs at those fractions: multiply median full-batch update time by ceil(N/16). They exclude validation/checkpoint overhead, use only five updates, do not determine a convergence budget, and say nothing about quantum runtime.
+
+| Training rows | Updates/epoch | Estimated optimizer-only seconds/epoch |
+|---|---:|---:|
+| 1000 | 63 | 0.045347 |
+| 500 | 32 | 0.023033 |
+| 250 | 16 | 0.011517 |
+| 100 | 7 | 0.005039 |
+
+Raw evidence/config/history/timing/normalization/hardware/hash records: results/classical_smoke_seed11_n1000.json. Local best checkpoint: results/checkpoints/classical_smoke_seed11_n1000_best.pt (ignored by Git). Saved generated physical-scale samples: results/samples/classical_smoke_seed11_n1000.npy. Figures: results/figures/classical_smoke_seed11_n1000_loss.png/.pdf and _generated_series.png/.pdf.
+
+No unresolved functional Phase 3 test failure remains. Convergence, realistic generation, comparative metrics and quantum compatibility remain unestablished. Full training budget is still unset and requires discussion/approval; no long job has run. Phase 4 (standalone four-qubit QNN/gradient tests) awaits explicit approval. Suggested Phase 3 commit: `feat: implement classical DDPM training sampling and smoke validation`.
+
+## Publication and next-phase planning — 27 October 2026
+
+Phase 3 prepared for publication as its own commit, preserving the measured 9 October smoke results. PHASE4_PLAN.md specifies standalone circuit/QNN construction, gradient verification and a short toy optimization. Phase 4 implementation and quantum forward/backward execution have not started. Publication verification is reported in the chat; preparing this commit is not evidence that a remote push has already succeeded.
+
+Pre-publication checks on 27 October 2026: all 37 regression tests passed in 2.046 seconds; pip check reported no broken requirements. Installed StatevectorEstimator, EstimatorQNN and ParamShiftEstimatorGradient signatures were inspected for the Phase 4 plan; no quantum circuit was executed.

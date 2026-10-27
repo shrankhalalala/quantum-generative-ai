@@ -1,0 +1,258 @@
+{
+  "purpose": "smoke test, not convergence or quality evidence",
+  "config": {
+    "dataset": {
+      "n_sequences": 1400,
+      "sequence_length": 32,
+      "split_sizes": [
+        1000,
+        200,
+        200
+      ],
+      "subset_sizes": [
+        1000,
+        500,
+        250,
+        100
+      ],
+      "generation_seed": 2026,
+      "split_seed": 2027,
+      "amplitude_range": [
+        0.6,
+        1.2
+      ],
+      "frequency_range": [
+        1.0,
+        3.0
+      ],
+      "harmonic_range": [
+        0.0,
+        0.3
+      ],
+      "noise_std": 0.05,
+      "normalization": "per_subset_global_zscore"
+    },
+    "model": {
+      "hidden_dim": 16,
+      "timestep_dim": 16,
+      "bottleneck_dim": 4,
+      "n_qubits": 4,
+      "quantum_layers": 2,
+      "rotations": [
+        "RY",
+        "RX"
+      ],
+      "entanglement_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    "diffusion": {
+      "steps": 20,
+      "beta_start": 0.0001,
+      "beta_end": 0.02
+    },
+    "training": {
+      "learning_rate": 0.001,
+      "batch_size": 16,
+      "epochs": null,
+      "max_steps": 5,
+      "pilot_steps": 5,
+      "seeds": [
+        11,
+        22,
+        33
+      ],
+      "device": "cpu"
+    },
+    "evaluation": {
+      "generated_sequences": 200,
+      "max_acf_lag": 10,
+      "ddof": 0,
+      "validation_seed": 2028,
+      "sampling_seed_offset": 10000
+    }
+  },
+  "seed": 11,
+  "subset_size": 1000,
+  "warmup_seconds": 0.057706124847754836,
+  "training": {
+    "steps": 5,
+    "examples_seen": 80,
+    "effective_epochs": 0.08,
+    "completed_epochs": 0,
+    "trainable_parameters": 1816,
+    "training_seconds": 0.028979708207771182,
+    "update_seconds": [
+      0.00515370792709291,
+      0.0007563340477645397,
+      0.0007197922095656395,
+      0.0007074999157339334,
+      0.0006950420793145895
+    ],
+    "optimizer_loop_seconds": 0.008032376179471612,
+    "mean_seconds_per_update": 0.0016064752358943223,
+    "median_seconds_per_update": 0.0007197922095656395,
+    "validation_seconds": 0.011091041844338179,
+    "checkpoint_seconds": 0.00943245948292315,
+    "initial_validation_loss": 1.0206045961380006,
+    "best_validation_loss": 1.01736159324646,
+    "best_step": 5,
+    "last_validation_loss": 1.01736159324646,
+    "stream_seeds": {
+      "shuffle": 592467769,
+      "timesteps": 621272063,
+      "noise": 520846937,
+      "validation_timesteps": 3576903042,
+      "validation_noise": 4135667527
+    }
+  },
+  "history": [
+    {
+      "step": 0,
+      "train_loss": null,
+      "validation_loss": 1.0206045961380006,
+      "examples_seen": 0
+    },
+    {
+      "step": 1,
+      "train_loss": 0.9524408578872681,
+      "validation_loss": 1.0198718690872193,
+      "examples_seen": 16
+    },
+    {
+      "step": 2,
+      "train_loss": 1.0906744003295898,
+      "validation_loss": 1.0191867542266846,
+      "examples_seen": 32
+    },
+    {
+      "step": 3,
+      "train_loss": 0.8881364464759827,
+      "validation_loss": 1.0186433649063111,
+      "examples_seen": 48
+    },
+    {
+      "step": 4,
+      "train_loss": 0.9449038505554199,
+      "validation_loss": 1.0180322885513307,
+      "examples_seen": 64
+    },
+    {
+      "step": 5,
+      "train_loss": 1.111545205116272,
+      "validation_loss": 1.01736159324646,
+      "examples_seen": 80
+    }
+  ],
+  "epochs": [
+    {
+      "epoch": 1,
+      "complete": false,
+      "steps": 5,
+      "examples": 80,
+      "train_loss": 0.9975401520729065,
+      "seconds": 0.022257499862462282
+    }
+  ],
+  "sampling": {
+    "seconds": 0.023875209037214518,
+    "n_sequences": 200,
+    "steps": 20,
+    "seed": 10011,
+    "step_max_abs_normalized": [
+      4.144207954406738,
+      4.140667915344238,
+      4.304291725158691,
+      4.511167526245117,
+      4.584702968597412,
+      4.552743911743164,
+      4.502063751220703,
+      4.524144172668457,
+      4.679178714752197,
+      4.807213306427002,
+      4.712278842926025,
+      4.800309181213379,
+      4.877474308013916,
+      4.919822692871094,
+      4.9288811683654785,
+      4.944518566131592,
+      5.051080703735352,
+      5.031226634979248,
+      5.046331405639648,
+      5.0463128089904785
+    ],
+    "max_abs_physical": 3.375194405225174
+  },
+  "checkpoint": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/checkpoints/classical_smoke_seed11_n1000_best.pt",
+  "checkpoint_sha256": "6e796eb04c2ddbb95522bd932f855aed87bb23fb67f0345975b932e420d642a0",
+  "checkpoint_step": 5,
+  "normalization": {
+    "mean": -0.0025439600689291754,
+    "std": 0.669347797718038,
+    "n_sequences": 1000,
+    "sequence_length": 32,
+    "ddof": 0
+  },
+  "environment": {
+    "python": "3.12.3 (v3.12.3:f6650f9ad7, Apr  9 2024, 08:18:47) [Clang 13.0.0 (clang-1300.0.29.30)]",
+    "executable": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/.venv/bin/python",
+    "platform": "macOS-26.6.2-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 8,
+    "pythonhashseed": "0",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "torch": "2.14.1",
+      "qiskit": "2.5.2",
+      "qiskit-machine-learning": "0.9.1",
+      "pytest": "9.1.1"
+    }
+  },
+  "dataset_sha256": {
+    "dataset.npz": "61f40b965ce2a97abde08ae8e3aa2e819e134ed1ced7d2d9e008ee776a9a6861",
+    "subsets.npz": "089e596097a6bd5880cd0c86bf57bbf2a7136e32ec62e6752742ff05907ac49b",
+    "normalization.json": "ee9129f1b4c0f29686dabd7c59bd7f649fd36fccde7329a9eb9b7d73621a1540"
+  },
+  "samples_file": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/samples/classical_smoke_seed11_n1000.npy",
+  "samples_sha256": "4ee69a7da7e5577cf498d8903825c5444822da912bd3a19b9f324950041d5900",
+  "figures_sha256": {
+    "classical_smoke_seed11_n1000_loss.png": "a2e961205397630ebf449899917ccde67ab91d084626e3cc9ccf4e7b5d7c06ca",
+    "classical_smoke_seed11_n1000_loss.pdf": "eecd6a5f448b158c982468b365a7d10379857a8be521c31832d8e3e2e18b8771",
+    "classical_smoke_seed11_n1000_generated_series.png": "6f2f8343aaff74a086ed90dd32d52f790f3b1420247f7530fc8ff0e7ee714a77",
+    "classical_smoke_seed11_n1000_generated_series.pdf": "20f7fc67665ce6045c65c2e3f626d57bc6da53e12fe1e5b333db92e972faba6c"
+  },
+  "classical_optimizer_cost_estimates": {
+    "1000": {
+      "steps_per_epoch": 63,
+      "optimizer_seconds_per_epoch_estimate": 0.04534690920263529
+    },
+    "500": {
+      "steps_per_epoch": 32,
+      "optimizer_seconds_per_epoch_estimate": 0.023033350706100464
+    },
+    "250": {
+      "steps_per_epoch": 16,
+      "optimizer_seconds_per_epoch_estimate": 0.011516675353050232
+    },
+    "100": {
+      "steps_per_epoch": 7,
+      "optimizer_seconds_per_epoch_estimate": 0.0050385454669594765
+    }
+  },
+  "estimate_limitations": "Five measured updates; optimizer-only linear extrapolation. Excludes validation/checkpoint overhead; not convergence evidence or quantum timing.",
+  "generation_quality_metrics": "Not evaluated; formal quality comparisons in Phase 6"
+}
