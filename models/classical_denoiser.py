@@ -46,3 +46,11 @@ class ClassicalDenoiser(Denoiser):
 
 def trainable_parameters(model: nn.Module) -> int:
     return sum(parameter.numel() for parameter in model.parameters() if parameter.requires_grad)
+
+
+class ParameterMatchedDenoiser(Denoiser):
+    """Optional 16-weight classical bottleneck; count matching is not capacity matching."""
+    def __init__(self, config: ModelConfig = DEFAULT_CONFIG.model,
+                 diffusion_steps: int = DEFAULT_CONFIG.diffusion.steps):
+        super().__init__(nn.Sequential(nn.Linear(config.bottleneck_dim, config.bottleneck_dim, bias=False),
+                                      nn.Tanh()), config, diffusion_steps)

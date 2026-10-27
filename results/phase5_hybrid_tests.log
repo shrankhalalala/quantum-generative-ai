@@ -1,0 +1,13 @@
+test_bad_inputs_and_factory_settings_rejected (test_hybrid_denoiser.HybridDenoiserTests.test_bad_inputs_and_factory_settings_rejected) ... ok
+test_copy_shared_weights_does_not_change_bottleneck_or_alias_parameters (test_hybrid_denoiser.HybridDenoiserTests.test_copy_shared_weights_does_not_change_bottleneck_or_alias_parameters) ... ok
+test_counts_and_only_bottleneck_replacement (test_hybrid_denoiser.HybridDenoiserTests.test_counts_and_only_bottleneck_replacement) ... ok
+test_factory_preserves_original_classical_initialization (test_hybrid_denoiser.HybridDenoiserTests.test_factory_preserves_original_classical_initialization) ... ok
+test_full_diffusion_gradients_and_output_shape (test_hybrid_denoiser.HybridDenoiserTests.test_full_diffusion_gradients_and_output_shape) ... ok
+test_hybrid_sampling_shape_repeatability_and_no_gradients (test_hybrid_denoiser.HybridDenoiserTests.test_hybrid_sampling_shape_repeatability_and_no_gradients) ... ok
+test_pairing_for_each_repetition_and_no_global_rng_consumption (test_hybrid_denoiser.HybridDenoiserTests.test_pairing_for_each_repetition_and_no_global_rng_consumption) ... ok
+test_same_trainer_updates_classical_and_quantum_and_restores_checkpoint (test_hybrid_denoiser.HybridDenoiserTests.test_same_trainer_updates_classical_and_quantum_and_restores_checkpoint) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 3.922s
+
+OK

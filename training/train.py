@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from config import DEFAULT_CONFIG, ExperimentConfig
 from data.artifacts import load_bundle, subset_key, sha256
-from models.classical_denoiser import ClassicalDenoiser, trainable_parameters
+from models.classical_denoiser import trainable_parameters
+from models.factory import MODEL_TYPES, make_model, shared_state_sha256
 from diffusion.noise_schedule import NoiseSchedule
 from diffusion.sampling import sample
 from training.plotting import plot_run
@@ -67,6 +68,29 @@ def validation_loss(model: nn.Module, schedule: NoiseSchedule, values: torch.Ten
     return result
 
 
+def quantum_workloads(model: nn.Module) -> dict[str, int]:
+    estimator = getattr(getattr(model, 'bottleneck', None), 'estimator', None)
+    return dict(estimator.counts) if estimator is not None else {}
+
+
+def component_gradient_norms(model: nn.Module) -> dict[str, float]:
+    squared = {}
+    for name, parameter in model.named_parameters():
+        if parameter.grad is not None:
+            component = name.split('.')[0]
+            squared[component] = squared.get(component, 0.) + float(parameter.grad.detach().double().square().sum())
+    return {name: value**.5 for name, value in squared.items()}
+
+
+def component_parameter_changes(model: nn.Module, initial: dict[str, torch.Tensor]) -> dict[str, float]:
+    squared = {}
+    for name, parameter in model.named_parameters():
+        component = name.split('.')[0]
+        delta = parameter.detach() - initial[name]
+        squared[component] = squared.get(component, 0.) + float(delta.double().square().sum())
+    return {name: value**.5 for name, value in squared.items()}
+
+
 @dataclass
 class TrainingResult:
     history: list[dict]
@@ -105,6 +129,9 @@ def train_model(model: nn.Module, schedule: NoiseSchedule, train: torch.Tensor, 
         raise FileExistsError('Checkpoint already exists; use a new run ID/directory')
     epoch_limit=setting.epochs
     budget=setting.max_steps if setting.max_steps is not None else epoch_limit*((len(train)+setting.batch_size-1)//setting.batch_size)
+    initial_parameters = {name: p.detach().clone() for name, p in model.named_parameters()}
+    initial_quantum_counts = quantum_workloads(model)
+    gradient_history = []
     history=[]; epoch_records=[]; update_seconds=[]; step=0; examples_seen=0
     checkpoint_seconds=0.; validation_seconds=0.
     start=perf_counter()
@@ -120,7 +147,7 @@ def train_model(model: nn.Module, schedule: NoiseSchedule, train: torch.Tensor, 
         payload={'schema_version':1,'model_type':type(model).__name__,'model_state':model.state_dict(),
                  'optimizer_state':optimizer.state_dict(),'schedule_state':schedule.state_dict(),
                  'step':step,'epoch':epoch,'batch_cursor':cursor,'best_validation_loss':best_loss,
-                 'config':config.to_dict(),'normalization':normalization,'run_seed':run_seed,
+                 'config':config.to_dict(),'normalization':normalization,'run_seed':run_seed,'validation_every':validation_every,
                  'stream_seeds':seeds,'rng_states':{'shuffle':shuffle_rng.get_state(),
                        'timesteps':time_rng.get_state(),'noise':noise_rng.get_state(), 'torch_global':torch.get_rng_state()},
                  'provenance':provenance or {}}
@@ -155,6 +182,7 @@ def train_model(model: nn.Module, schedule: NoiseSchedule, train: torch.Tensor, 
             gradients=[p.grad for p in model.parameters() if p.grad is not None]
             if not gradients or any(not torch.isfinite(g).all() for g in gradients):
                 raise FloatingPointError('Missing or non-finite model gradients')
+            gradient_history.append(component_gradient_norms(model))
             optimizer.step()
             if any(not torch.isfinite(p).all() for p in model.parameters()):
                 raise FloatingPointError('Non-finite optimized parameters')
@@ -177,7 +205,7 @@ def train_model(model: nn.Module, schedule: NoiseSchedule, train: torch.Tensor, 
                               'examples':epoch_examples,'train_loss':epoch_error/epoch_elements,
                               'seconds':perf_counter()-epoch_start})
     seconds=perf_counter()-start
-    summary={'steps':step,'examples_seen':examples_seen,'effective_epochs':examples_seen/len(train),
+    summary={'steps':step,'examples_seen':examples_seen,'validation_every':validation_every,'effective_epochs':examples_seen/len(train),
              'completed_epochs':sum(row['complete'] for row in epoch_records),
              'trainable_parameters':trainable_parameters(model),'training_seconds':seconds,
              'update_seconds':update_seconds,'optimizer_loop_seconds':sum(update_seconds),
@@ -185,7 +213,11 @@ def train_model(model: nn.Module, schedule: NoiseSchedule, train: torch.Tensor, 
              'median_seconds_per_update':float(np.median(update_seconds)),
              'validation_seconds':validation_seconds,'checkpoint_seconds':checkpoint_seconds,
              'initial_validation_loss':initial_val,'best_validation_loss':best_loss,'best_step':best_step,
-             'last_validation_loss':history[-1]['validation_loss'],'stream_seeds':seeds}
+             'last_validation_loss':history[-1]['validation_loss'],'stream_seeds':seeds,
+             'gradient_norms_per_update':gradient_history,
+             'last_model_parameter_change_l2':component_parameter_changes(model, initial_parameters),
+             'quantum_submitted_workloads':{key: value-initial_quantum_counts[key]
+                                            for key,value in quantum_workloads(model).items()}}
     return TrainingResult(history,epoch_records,summary,checkpoint)
 
 
@@ -205,6 +237,7 @@ def main():
     budget.add_argument('--smoke',action='store_true',help='Only the five-step configured pilot')
     budget.add_argument('--max-steps',type=int,help='Explicit approved update budget')
     budget.add_argument('--epochs',type=int,help='Explicit approved epoch budget')
+    parser.add_argument('--model',choices=MODEL_TYPES,default='classical')
     parser.add_argument('--seed',type=int,choices=DEFAULT_CONFIG.training.seeds,default=11)
     parser.add_argument('--subset-size',type=int,choices=DEFAULT_CONFIG.dataset.subset_sizes,default=1000)
     parser.add_argument('--validation-every',type=int,default=None)
@@ -212,7 +245,7 @@ def main():
     parser.add_argument('--results-dir',type=Path,default=ROOT/'results')
     parser.add_argument('--run-id',default=None)
     args=parser.parse_args()
-    args.run_id=args.run_id or f"classical_{'smoke' if args.smoke else 'train'}_seed{args.seed}_n{args.subset_size}"
+    args.run_id=args.run_id or f"{args.model}_{'smoke' if args.smoke else 'train'}_seed{args.seed}_n{args.subset_size}"
     if not args.run_id or any(character not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-' for character in args.run_id):
         parser.error('Run ID must contain only letters, digits, underscore or hyphen')
     steps=DEFAULT_CONFIG.training.pilot_steps if args.smoke else args.max_steps
@@ -228,42 +261,58 @@ def main():
     train=torch.from_numpy(normalized['train']).float()
     validation=torch.from_numpy(normalized['validation']).float()
     seed_everything(args.seed)
-    model=ClassicalDenoiser(config.model,config.diffusion.steps)
+    model=make_model(args.model,args.seed,config)
+    initial_shared_hash=shared_state_sha256(model)
+    initial_parameters={name: p.detach().clone() for name,p in model.named_parameters()}
     schedule=NoiseSchedule(config.diffusion)
     warmup_start=perf_counter()
     model(torch.zeros(16,32),torch.zeros(16,dtype=torch.long)).square().mean().backward()
     model.zero_grad(set_to_none=True)
     warmup_seconds=perf_counter()-warmup_start
     interval=args.validation_every if args.validation_every is not None else (1 if args.smoke else 63)
-    provenance={'dataset_sha256':bundle.metadata['sha256'],'subset_indices':bundle.subsets[subset_key(args.seed,args.subset_size)].tolist(),
+    provenance={'model_choice':args.model,'initial_shared_state_sha256':initial_shared_hash,
+                'dataset_sha256':bundle.metadata['sha256'],'subset_indices':bundle.subsets[subset_key(args.seed,args.subset_size)].tolist(),
                 'validation_indices':bundle.splits['validation'].tolist(),'environment':environment_metadata(),
                 'purpose':'smoke test, not convergence or quality evidence' if args.smoke else 'explicitly budgeted training'}
+    before_training_counts=quantum_workloads(model)
     trained=train_model(model,schedule,train,validation,config,args.seed,checkpoint,
                         bundle.normalization[subset_key(args.seed,args.subset_size)].to_dict(),interval,provenance)
     restored=restore_checkpoint(model,schedule,checkpoint)
+    best_parameter_changes=component_parameter_changes(model,initial_parameters)
+    before_sampling_counts=quantum_workloads(model)
     generated=sample(model,schedule,config.evaluation.generated_sequences,
                      args.seed+config.evaluation.sampling_seed_offset,config.training.batch_size)
     physical=bundle.normalization[subset_key(args.seed,args.subset_size)].inverse_transform(generated.samples.numpy())
     samples_path=results/'samples'/f'{args.run_id}.npy'
     samples_path.parent.mkdir(parents=True,exist_ok=True)
     np.save(samples_path,physical,allow_pickle=False)
-    figures=plot_run(trained.history,physical,bundle.dataset.time,results/'figures',args.run_id)
+    figures=plot_run(trained.history,physical,bundle.dataset.time,results/'figures',args.run_id,
+                     model_label={'classical':'Classical','hybrid':'Hybrid','classical_matched':'Parameter-matched classical'}[args.model],
+                     smoke=args.smoke)
     median=trained.summary['median_seconds_per_update']
     # Update-only estimates exclude validation/checkpoints; assumptions stay explicit.
-    estimates={str(size):{'steps_per_epoch':(size+15)//16,
-                         'optimizer_seconds_per_epoch_estimate':((size+15)//16)*median}
+    batch_size=config.training.batch_size
+    estimates={str(size):{'steps_per_epoch':(size+batch_size-1)//batch_size,
+                         'optimizer_seconds_per_epoch_estimate':((size+batch_size-1)//batch_size)*median}
                for size in config.dataset.subset_sizes}
-    record={'purpose':provenance['purpose'],'config':config.to_dict(),'seed':args.seed,'subset_size':args.subset_size,
+    record={'purpose':provenance['purpose'],'config':config.to_dict(),'model_choice':args.model,
+            'initial_shared_state_sha256':initial_shared_hash,'best_model_parameter_change_l2':best_parameter_changes,
+            'warmup_quantum_submitted_workloads':before_training_counts,
+            'execution':{'device':'cpu','dtype':'float32','torch_threads':torch.get_num_threads(),
+                         'torch_interop_threads':torch.get_num_interop_threads(),
+                         'quantum_simulator':'ideal StatevectorEstimator, zero precision' if args.model=='hybrid' else None,
+                         'quantum_hardware_execution':False},'seed':args.seed,'subset_size':args.subset_size,
             'warmup_seconds':warmup_seconds,'training':trained.summary,'history':trained.history,'epochs':trained.epochs,
             'sampling':{'seconds':generated.seconds,'n_sequences':len(physical),'steps':schedule.steps,
                         'seed':generated.seed,'step_max_abs_normalized':generated.step_max_abs,
+                        'quantum_submitted_workloads':{key:value-before_sampling_counts[key] for key,value in quantum_workloads(model).items()},
                         'max_abs_physical':float(np.abs(physical).max())},
             'checkpoint':str(checkpoint),'checkpoint_sha256':sha256(checkpoint),'checkpoint_step':restored['step'],
             'normalization':restored['normalization'],'environment':environment_metadata(),
             'dataset_sha256':bundle.metadata['sha256'],'samples_file':str(samples_path),'samples_sha256':sha256(samples_path),
             'figures_sha256':{path.name:sha256(path) for path in figures},
-            'classical_optimizer_cost_estimates':estimates,
-            'estimate_limitations':'Five measured updates; optimizer-only linear extrapolation. Excludes validation/checkpoint overhead; not convergence evidence or quantum timing.',
+            'optimizer_cost_estimates':estimates,
+            'estimate_limitations':'Median measured updates; optimizer-only extrapolation from this run, excluding validation/checkpoints. No convergence or hardware speedup claim.',
             'generation_quality_metrics':'Not evaluated; formal quality comparisons in Phase 6'}
     save_json(summary_path,record)
     print(f"Completed {trained.summary['steps']} updates; parameters={trainable_parameters(model)}; best checkpoint step={restored['step']}")

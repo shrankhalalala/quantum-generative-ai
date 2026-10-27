@@ -1,6 +1,6 @@
 # Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications
 
-A focused synthetic time-series diffusion experiment extending the existing survey of 25 selected research papers. **Current stage: Phase 4 complete — standalone trainable four-qubit layer validated.** Classical smoke validation and the dataset are complete. Hybrid integration, full training and comparisons remain future work; Phase 5 awaits approval.
+A focused synthetic time-series diffusion experiment extending the existing survey of 25 selected research papers. **Current stage: Phase 5 complete — hybrid integration and paired five-update pilots validated.** Full training and formal comparative metrics remain future work. Phase 6 and any substantial training budget require approval.
 
 ## Setup
 
@@ -36,19 +36,19 @@ scripts/check_environment.py      Phase 1 checks, implemented
 requirements.txt                  direct version pins
 requirements-lock.txt             complete installed package snapshot
 data/                             Phase 2 implemented; saved datasets/ artifacts
-models/classical_denoiser.py       shared architecture and classical bottleneck
+models/                           classical/hybrid/control denoisers, paired factory and quantum layer
 diffusion/                        implemented noise schedule and reverse sampler
 training/                         implemented shared trainer and smoke plots
 evaluation/                       Phase 6; metrics/comparison not yet created
 experiments/                      Phase 6; run_experiments not yet created
 results/figures, tables, checkpoints, samples/  computed data/smoke artifacts
-tests/test_phase1.py, test_phase2.py, test_phase3.py, test_quantum_layer.py  50 tests
+tests/                            58 tests across data, classical, quantum and hybrid stages
 EXPERIMENTAL_METHODOLOGY.md        scientific design
 IMPLEMENTATION_EXPLANATION.md      file guide and presentation explanation
 RESULTS.md                        only measured outcomes/status
 ```
 
-Package initializers have no execution side effects. Models, diffusion and training programs are now implemented for the classical baseline. The standalone `models/quantum_layer.py` is implemented. Future `models/hybrid_denoiser.py`, `evaluation/metrics.py`, `evaluation/compare_models.py` and `experiments/run_experiments.py` will be created in their approved phases.
+Package initializers have no execution side effects. Models, diffusion and training programs are now implemented for the classical baseline. The standalone `models/quantum_layer.py` is implemented. `models/hybrid_denoiser.py` is now implemented. Future `evaluation/metrics.py`, `evaluation/compare_models.py` and `experiments/run_experiments.py` will be created in their approved phases.
 
 ## Scientific decisions
 
@@ -97,11 +97,11 @@ XDG_CACHE_HOME=/tmp/qgai-cache MPLCONFIGDIR=/tmp/qgai-matplotlib PYTHONHASHSEED=
 PYTHONHASHSEED=0 .venv/bin/python -m unittest discover -s tests -v
 ```
 
-The smoke artifacts already exist; the command intentionally refuses to overwrite them. To reproduce numerical behavior into a new run, add `--run-id classical_smoke_repeat`. CPU wall times may differ. Use `--help` for the three allowed seeds, four subset sizes, data/results directories and validation interval. Without `--smoke`, exactly one explicit `--max-steps N` or `--epochs N` is required. A long-training budget must first be discussed and approved; none has been selected or executed. Full epochs/max_steps remain unset in DEFAULT_CONFIG; each actual run records its own budget.
+The smoke artifacts already exist; the command intentionally refuses to overwrite them. To reproduce numerical behavior into a new run, add `--run-id classical_smoke_repeat`. CPU wall times may differ. Use `--help` for the three allowed seeds, four subset sizes, data/results directories and validation interval. Without `--smoke`, exactly one explicit `--max-steps N` or `--epochs N` is required. A long-training budget must first be discussed and approved; none has been selected or executed. Full epochs/max_steps remain unset in DEFAULT_CONFIG; each actual run records its own budget. `--model` selects classical, hybrid or classical_matched; all use the same trainer.
 
 The default smoke validates after every update. An explicitly budgeted run defaults to validation every 63 updates and at the final update; `--validation-every` can override it. Every epoch shuffles once and keeps the final short batch. The validation noise/timesteps are fixed across checkpoints and model/seed comparisons. Separate Torch Generators isolate shuffling, training timesteps, training noise and reverse-sampling randomness.
 
-Implemented architecture: learned Embedding(20,16) + noisy 32-vector → concat 48 → Linear/SiLU/Linear encoder 48→16→4 → Linear(4,4)/Tanh classical bottleneck → Linear/SiLU/Linear decoder 4→16→32. Baseline count is 1,816. `Denoiser` exposes shared components for Phase 5; later paired models must explicitly copy initial shared states. The standalone quantum module is now validated; the hybrid diffusion model is not implemented yet.
+Implemented architecture: learned Embedding(20,16) + noisy 32-vector → concat 48 → Linear/SiLU/Linear encoder 48→16→4 → Linear(4,4)/Tanh classical bottleneck → Linear/SiLU/Linear decoder 4→16→32. Baseline count is 1,816. `Denoiser` exposes shared components for Phase 5; later paired models must explicitly copy initial shared states. The hybrid module now replaces only the bottleneck, and an optional bias-free classical bottleneck provides a parameter-count control. The factory explicitly copies shared initial states between arms.
 
 Outputs of the existing smoke run:
 
@@ -147,8 +147,37 @@ Files:
 
 Workload counts mean submitted primitive calls/PUBs, parameter-binding instances and observable expectations. Binding instances repeated for different observables count again. They are not unique circuits, hardware jobs or shots. In the measured two-row probe the forward call submitted 4 PUBs/8 expectations and backward submitted 320 PUBs/320 expectations. See the result record for definitions and separate timing measurements.
 
-## Phase 5, after explicit approval
+## Phase 5: hybrid model and paired pilot commands
 
-Implement `models/hybrid_denoiser.py` by replacing only the four-dimensional classical bottleneck. Reuse the existing timestep encoder, classical encoder/decoder, DDPM, optimizer, validation and sampler. Explicitly pair initial shared classical states. Verify end-to-end diffusion gradients and parameter counts, then measure a short hybrid-training/sampling pilot before discussing any full experiment budget. The optional parameter-matched classical control can be assessed in this phase. Formal comparisons remain Phase 6.
+`HybridDenoiser` inherits exactly the baseline embedding/encoder/decoder and substitutes `QuantumLayer` for the 4→4 affine/Tanh bottleneck. `models/factory.py` constructs a seeded reference baseline and copies the embedding, encoder and decoder state into each arm. It copies values into independent parameters, not aliased modules. The initial shared-state SHA-256 agrees across all three model types for each seed. Baseline initialization remains identical to Phase 3.
 
-Published commits: Phase 1 `f0417c2`, Phase 2 `84ea5d3`, Phase 3 `cda3611`. Phase 4 is recorded in its own implementation commit for publication on 27 October 2026. Its approved plan is retained in PHASE4_PLAN.md. Suggested Phase 4 commit: `feat: add four-qubit quantum bottleneck and standalone gradient validation`. Stop after each phase for approval.
+| Model choice | Bottleneck | Trainable parameters |
+|---|---|---:|
+| classical | Linear(4,4) with bias + Tanh | 1,816 |
+| hybrid | Four-qubit quantum layer | 1,812 |
+| classical_matched | Linear(4,4), no bias + Tanh | 1,812 |
+
+The optional classical control copies the baseline's initial bottleneck weight matrix as well as its shared states. Equal parameter count does not mean equal expressiveness. No formal control-model quality experiment has run.
+
+Reproduce the paired five-update pilots into fresh run IDs (the originals are retained):
+
+```bash
+XDG_CACHE_HOME=/tmp/qgai-cache MPLCONFIGDIR=/tmp/qgai-matplotlib PYTHONHASHSEED=0 .venv/bin/python training/train.py --model classical --smoke --run-id phase5_classical_repeat
+XDG_CACHE_HOME=/tmp/qgai-cache MPLCONFIGDIR=/tmp/qgai-matplotlib PYTHONHASHSEED=0 .venv/bin/python training/train.py --model hybrid --smoke --run-id phase5_hybrid_repeat
+PYTHONHASHSEED=0 .venv/bin/python -m unittest discover -s tests -p test_hybrid_denoiser.py -v
+PYTHONHASHSEED=0 .venv/bin/python -m unittest discover -s tests -v
+```
+
+Existing original pilot IDs are `phase5_classical_seed11_n1000` and `phase5_hybrid_seed11_n1000`. Both use seed 11, the same 1,000-row subset and scalar normalization, five updates, Adam LR 0.001, batch size 16, fixed validation seed 2028, validation after each update, 20 diffusion steps, sampling seed 10011 and 200 generated sequences. They are functional pilots, not converged quality comparisons.
+
+`training/train.py` additionally records per-component gradient norms for every update, last/best model parameter-displacement norms, validation interval, paired initial-state hash, CPU thread counts and separate quantum submitted workloads for warm-up, training and sampling. A single optimizer updates classical and quantum parameters from the same diffusion loss. `training/plotting.py` now labels figures using the selected model instead of always saying classical.
+
+Outputs use the standard results layout: each run's JSON, local best checkpoint, physical-scale sample NPY, loss/generated-series PNG/PDF and pilot logs. `results/phase5_checks.json` records matching conditions, parameter counts, gradient/update checks, exact checkpoint-to-sample reproduction and cost estimates. `scripts/check_hybrid_model.py` verifies existing pilots and calculates estimates; it never starts training. Its default report already exists, so it refuses to overwrite it. `verify_pilots(results_dir, data_dir)` is also available for read-only verification without writing a second report.
+
+The measured hybrid median optimizer update took about 1.16 seconds; sampling 200 rows took about 7.13 seconds. Full-budget estimates are in RESULTS.md. For a common budget K per condition, the classical+hybrid 24-run optimizer-only estimate is approximately 13.89*K seconds, plus validation/checkpoints/warm-up/sampling. K is not chosen or approved. This extrapolation is based on one seed/fraction and five full-batch updates; it does not establish convergence. Smoke samples remain visibly noise-like. No generation-quality or quantum-advantage claim is supported.
+
+## Phase 6, after explicit approval
+
+Implement pooled-value Wasserstein/mean/std/variance metrics and consistent mean per-sequence ACF error against the held-out reference, with focused tests and raw per-run records. Discuss a training/convergence budget using the measured hybrid cost before scheduling all four fractions and three seeds. Use common optimizer-update budgets, paired data/random draws/shared initial weights and equal sample counts; include the optional matched classical control if approved/feasible. Record actual run status, failures, means and sample standard deviations without substituting missing results. Any long training job requires explicit confirmation. Final comparative figures/documentation remain Phase 7.
+
+Published commits: Phase 1 f0417c2, Phase 2 84ea5d3, Phase 3 cda3611, Phase 4 4c8c811. Phase 5 is recorded in a separate implementation commit for publication. Suggested Phase 5 commit: `feat: integrate hybrid diffusion model and validate paired training pilots`. Stop after each phase for approval.

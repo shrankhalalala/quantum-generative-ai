@@ -1,0 +1,102 @@
+{
+  "status": "passed",
+  "created_at_utc": "2026-10-27T12:45:14.727968+00:00",
+  "runs": {
+    "classical": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase5_classical_seed11_n1000.json",
+    "hybrid": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase5_hybrid_seed11_n1000.json"
+  },
+  "paired_initial_shared_state_sha256": "1dc188938cb729c5c8571609d4ed934eba6c16a2054ae88ea19740783818d98d",
+  "paired_data_seeds_schedule_optimizer_and_sampling": "passed",
+  "model_parameter_counts": {
+    "classical": 1816,
+    "hybrid": 1812,
+    "classical_matched": 1812
+  },
+  "same_parameter_count_is_not_equal_capacity": true,
+  "hybrid_joint_gradient_and_update_checks": "passed",
+  "saved_checkpoint_sample_checks": {
+    "classical": {
+      "checkpoint_hash": "passed",
+      "exact_sample_regeneration": "passed",
+      "no_exact_raw_row_copies": true,
+      "best_checkpoint_step": 5
+    },
+    "hybrid": {
+      "checkpoint_hash": "passed",
+      "exact_sample_regeneration": "passed",
+      "no_exact_raw_row_copies": true,
+      "best_checkpoint_step": 5
+    }
+  },
+  "cost_estimates": {
+    "condition_count_per_model": 12,
+    "seeds": 3,
+    "fractions": 4,
+    "approved_full_budget": null,
+    "per_model_optimizer_seconds_per_update": {
+      "classical": 0.0010019159817602485,
+      "hybrid": 1.156238832976669
+    },
+    "mean_seconds_per_validation_pass": {
+      "classical": 0.0028061526633488634,
+      "hybrid": 0.35512492367221665
+    },
+    "per_model_sampling_200_seconds": {
+      "classical": 0.026230874995235354,
+      "hybrid": 7.127931708004326
+    },
+    "hybrid_epoch_optimizer_seconds_estimates": {
+      "1000": {
+        "steps_per_epoch": 63,
+        "optimizer_seconds_per_epoch_estimate": 72.84304647753015
+      },
+      "500": {
+        "steps_per_epoch": 32,
+        "optimizer_seconds_per_epoch_estimate": 36.99964265525341
+      },
+      "250": {
+        "steps_per_epoch": 16,
+        "optimizer_seconds_per_epoch_estimate": 18.499821327626705
+      },
+      "100": {
+        "steps_per_epoch": 7,
+        "optimizer_seconds_per_epoch_estimate": 8.093671830836684
+      }
+    },
+    "hybrid_one_epoch_each_condition_optimizer_seconds_estimate": 409.30854687374085,
+    "hybrid_12_run_sampling_seconds_estimate": 85.53518049605191,
+    "paired_24_run_optimizer_seconds_per_common_update_budget_unit": 13.886888987501152,
+    "fixed_update_budget_formula": "For common budget K per condition: 12*K*(classical_median+hybrid_median) optimizer seconds, plus validation, checkpoints, warm-up and sampling.",
+    "validation_call_formula": "Each run: 1 + floor(K / validation_every) + int(K % validation_every != 0) full validation passes.",
+    "limitations": "Five full-batch updates, one seed/fraction, ideal CPU simulation. Extrapolations exclude checkpoint overhead and have no convergence/hardware-speedup interpretation. Short last batches and system variability may change costs."
+  },
+  "source_sha256": {
+    "models/hybrid_denoiser.py": "e303905b1656dfa6d67f18539fb411feec6ee219e189ce410725b3d2f7340883",
+    "models/factory.py": "5b5c151904890bc7a2493a5e0fee2e71bed26270f1cec3310bc396f5a4fb9b00",
+    "models/classical_denoiser.py": "14bf0e1a38fc5d2df5cdb9403e5f46e21a3aef1c41ca071d46f6c368d7189579",
+    "training/train.py": "6a8d53f05bf977a3bc15aa3fa262f8410f3fa49938c40cd6f95e7d01d99fe8ed",
+    "training/plotting.py": "d77cd64ad6cbc182bc87f0cf6c28c26b2dcdfb630fc4f76c9c495ce754686d28",
+    "scripts/check_hybrid_model.py": "73286a13b3277a4b1a63f2ab835294f90076537245651ecf0e5c702a2bd64d66",
+    "tests/test_hybrid_denoiser.py": "ec4357fcde4217c473c01967ea5692e794391f2ce02db5c91672a7413e3e1e75"
+  },
+  "full_training_executed": false,
+  "phase6_started": false,
+  "generation_quality_metrics": "Not evaluated",
+  "hybrid_tests": {
+    "count": 8,
+    "seconds": 3.922,
+    "failures": 0,
+    "errors": 0,
+    "log": "results/phase5_hybrid_tests.log",
+    "status": "passed"
+  },
+  "regression_tests": {
+    "count": 58,
+    "seconds": 4.161,
+    "failures": 0,
+    "errors": 0,
+    "log": "results/phase5_regression_tests.log",
+    "status": "passed"
+  },
+  "visual_inspection": "All four Phase 5 classical/hybrid loss and first-six-generated-series PNGs inspected; matching PDFs exported. Labels/layout readable; smoke samples remain noise-like."
+}

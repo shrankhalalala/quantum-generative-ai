@@ -2,7 +2,7 @@
 
 **Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications**
 
-This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Phase 3 now implements and smoke-tests the classical DDPM; the standalone quantum layer is now validated in Phase 4; hybrid models and full training remain future work.
+This implementation supports the survey, rather than replacing its literature review. Phases 1–2 define the experiment, verify the environment and implement the reproducible dataset. Phase 3 now implements and smoke-tests the classical DDPM; the standalone quantum layer is now validated in Phase 4; Phase 5 now integrates the hybrid model and validates a paired five-update pilot; full training and quality comparisons remain future work.
 
 ## How to explain the experiment
 
@@ -56,7 +56,6 @@ The five-step run is a functional smoke test: its outputs are visibly noisy. A s
 
 ## Future file map (specified, not implemented)
 
-- models/hybrid_denoiser.py (Phase 5): same inputs/outputs as baseline, swaps only bottleneck and reuses common architecture. Shared parameter initialization must be explicitly copied for paired trials.
 - evaluation/metrics.py (Phase 6): inverse-transformed generated/reference arrays → marginal distribution metrics and mean per-sequence biased ACF errors. Correlations never cross sequence boundaries.
 - evaluation/compare_models.py (Phase 6): raw per-run records → repeated-run means/sample standard deviations and provenance-preserving comparisons.
 - experiments/run_experiments.py (Phase 6): approved config/budget → model × fraction × seed runs with shared training/evaluation procedures; no automatic execution at import.
@@ -79,3 +78,21 @@ For presentation: four classical numbers become four bounded angles. Each RY gat
 The parameter-shift rule evaluates circuits at shifted angles to form derivatives. TorchConnector uses these derivatives in its custom backward function. Its internal NumPy conversion does not itself break autograd because the connector supplies the backward mapping; manually converting features to NumPy before the connector would break the preceding classical graph. The code avoids that mistake and tests the full feature-angle-circuit chain.
 
 The independent toy fit is a reachable-target test, not sinusoidal generation. The ten updates reduced its recorded MSE and moved the quantum parameters. This validates optimization wiring. It does not imply that the hybrid diffusion model will beat the classical model or require less data. Phase 5 will integrate only the bottleneck and measure the actual combined workload; Phase 6 will perform fair comparative experiments.
+
+## Files implemented or extended in Phase 5
+
+| File | Inputs → outputs | Functions and connection to the experiment |
+|---|---|---|
+| models/hybrid_denoiser.py | Model config, diffusion-step count and seed → HybridDenoiser | Subclasses Denoiser and passes QuantumLayer as its bottleneck. No surrounding encoder/decoder architecture or diffusion formula changes. Its forward interface is still noisy (B,32) + timestep (B,) → predicted noise (B,32). |
+| models/factory.py | Model choice/seed/config → paired initialized model | `make_model` constructs a reference baseline and copies shared initial states into other arms. `copy_shared_state` copies values without aliasing; `shared_state_sha256` records tensor names, shapes, dtypes and values. A local RNG context preserves caller randomness. |
+| models/classical_denoiser.py | Existing baseline plus optional control | Added ParameterMatchedDenoiser: bias-free Linear(4,4)+Tanh, with 16 bottleneck weights. Baseline architecture and original seeded initialization remain unchanged. The factory copies the baseline's bottleneck matrix into this control. |
+| training/train.py | Any model choice + same data/config/budget → checkpoint, losses, gradients, samples and provenance | CLI `--model` selects classical, hybrid or classical_matched. The same `train_model` updates every registered parameter using noise MSE/Adam. `component_gradient_norms` records the diffusion gradient arriving at each component; `component_parameter_changes` shows actual movement; `quantum_workloads` reads submitted estimator counters. Best-checkpoint and sampler code are reused. |
+| training/plotting.py | Actual history/generated arrays + model label → PNG/PDF | Replaced fixed classical titles with selected-model labels. Smoke outputs are explicitly identified as functional tests. |
+| tests/test_hybrid_denoiser.py | Deterministic fixtures/temp checkpoints → eight tests | Verifies only-bottleneck replacement, counts, exact paired states/no storage sharing, seed isolation, original-baseline initialization, end-to-end diffusion gradients, joint optimizer updates, checkpoint reload, sampler repeatability and invalid input rejection. |
+| scripts/check_hybrid_model.py | Existing paired pilot files + saved dataset → verification/cost report | `verify_pilots` checks matching config/data/seeds/normalization/initial shared hash, actual component changes, submitted workloads, checkpoint/sample hashes and exact sample regeneration. It reports cost coefficients for an unspecified full budget; no training starts from this script or module import. |
+
+Presentation explanation: Phase 4 proved that the circuit itself is trainable. Phase 5 places it inside the denoiser's computation graph. The loss compares the final 32 noise predictions to known diffusion noise; backward passes through the decoder, four quantum expectations, bounded angle map, encoder and time embedding. All these parts learn together through the existing Adam optimizer. Recorded component norms and actual parameter changes verify this on real normalized training batches.
+
+A shared seed alone cannot ensure paired initial weights, because baseline, control and circuit constructors consume different random values. Explicitly copying the common state fixes that problem. Independent storage matters: updating one model must not silently change another model. The factory and tests verify both conditions.
+
+The five updates process only 80 examples (0.08 effective epochs) in each arm. Their loss curves and generated samples are saved, but they do not demonstrate convergence or realistic time-series fidelity. Measured hybrid update/sampling times are much greater than the small classical network's timings on this simulator; they are simulation costs and give no hardware speedup result. Full quality/scarcity evaluation belongs to Phase 6 after budget approval.

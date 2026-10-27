@@ -1,0 +1,316 @@
+{
+  "purpose": "smoke test, not convergence or quality evidence",
+  "config": {
+    "dataset": {
+      "n_sequences": 1400,
+      "sequence_length": 32,
+      "split_sizes": [
+        1000,
+        200,
+        200
+      ],
+      "subset_sizes": [
+        1000,
+        500,
+        250,
+        100
+      ],
+      "generation_seed": 2026,
+      "split_seed": 2027,
+      "amplitude_range": [
+        0.6,
+        1.2
+      ],
+      "frequency_range": [
+        1.0,
+        3.0
+      ],
+      "harmonic_range": [
+        0.0,
+        0.3
+      ],
+      "noise_std": 0.05,
+      "normalization": "per_subset_global_zscore"
+    },
+    "model": {
+      "hidden_dim": 16,
+      "timestep_dim": 16,
+      "bottleneck_dim": 4,
+      "n_qubits": 4,
+      "quantum_layers": 2,
+      "rotations": [
+        "RY",
+        "RX"
+      ],
+      "entanglement_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    "diffusion": {
+      "steps": 20,
+      "beta_start": 0.0001,
+      "beta_end": 0.02
+    },
+    "training": {
+      "learning_rate": 0.001,
+      "batch_size": 16,
+      "epochs": null,
+      "max_steps": 5,
+      "pilot_steps": 5,
+      "seeds": [
+        11,
+        22,
+        33
+      ],
+      "device": "cpu"
+    },
+    "evaluation": {
+      "generated_sequences": 200,
+      "max_acf_lag": 10,
+      "ddof": 0,
+      "validation_seed": 2028,
+      "sampling_seed_offset": 10000
+    }
+  },
+  "model_choice": "classical",
+  "initial_shared_state_sha256": "1dc188938cb729c5c8571609d4ed934eba6c16a2054ae88ea19740783818d98d",
+  "best_model_parameter_change_l2": {
+    "timestep_encoding": 0.042988629035260836,
+    "encoder": 0.07845127139261081,
+    "bottleneck": 0.013717798703129003,
+    "decoder": 0.08424996641045326
+  },
+  "warmup_quantum_submitted_workloads": {},
+  "execution": {
+    "device": "cpu",
+    "dtype": "float32",
+    "torch_threads": 4,
+    "torch_interop_threads": 8,
+    "quantum_simulator": null,
+    "quantum_hardware_execution": false
+  },
+  "seed": 11,
+  "subset_size": 1000,
+  "warmup_seconds": 0.06407066699466668,
+  "training": {
+    "steps": 5,
+    "examples_seen": 80,
+    "validation_every": 1,
+    "effective_epochs": 0.08,
+    "completed_epochs": 0,
+    "trainable_parameters": 1816,
+    "training_seconds": 0.043670082988683134,
+    "update_seconds": [
+      0.008107083005597815,
+      0.001102125010220334,
+      0.0010019159817602485,
+      0.0009436669934075326,
+      0.000897624995559454
+    ],
+    "optimizer_loop_seconds": 0.012052415986545384,
+    "mean_seconds_per_update": 0.002410483197309077,
+    "median_seconds_per_update": 0.0010019159817602485,
+    "validation_seconds": 0.01683691598009318,
+    "checkpoint_seconds": 0.013711958948988467,
+    "initial_validation_loss": 1.0206045961380006,
+    "best_validation_loss": 1.01736159324646,
+    "best_step": 5,
+    "last_validation_loss": 1.01736159324646,
+    "stream_seeds": {
+      "shuffle": 592467769,
+      "timesteps": 621272063,
+      "noise": 520846937,
+      "validation_timesteps": 3576903042,
+      "validation_noise": 4135667527
+    },
+    "gradient_norms_per_update": [
+      {
+        "timestep_encoding": 0.00031296541328812156,
+        "encoder": 0.007930048282154692,
+        "bottleneck": 0.017989239997302207,
+        "decoder": 0.16034093930800586
+      },
+      {
+        "timestep_encoding": 0.0005288341099910058,
+        "encoder": 0.01571400312817103,
+        "bottleneck": 0.010353494519730161,
+        "decoder": 0.1439801813387752
+      },
+      {
+        "timestep_encoding": 0.000649220280072925,
+        "encoder": 0.013605925194853388,
+        "bottleneck": 0.01308579006037995,
+        "decoder": 0.11167357853423457
+      },
+      {
+        "timestep_encoding": 0.0005227170850414345,
+        "encoder": 0.017964246880062523,
+        "bottleneck": 0.027927678193427136,
+        "decoder": 0.14209249834966373
+      },
+      {
+        "timestep_encoding": 0.0005671369470716149,
+        "encoder": 0.021107001800172102,
+        "bottleneck": 0.02512859216396539,
+        "decoder": 0.15359967808601863
+      }
+    ],
+    "last_model_parameter_change_l2": {
+      "timestep_encoding": 0.042988629035260836,
+      "encoder": 0.07845127139261081,
+      "bottleneck": 0.013717798703129003,
+      "decoder": 0.08424996641045326
+    },
+    "quantum_submitted_workloads": {}
+  },
+  "history": [
+    {
+      "step": 0,
+      "train_loss": null,
+      "validation_loss": 1.0206045961380006,
+      "examples_seen": 0
+    },
+    {
+      "step": 1,
+      "train_loss": 0.9524408578872681,
+      "validation_loss": 1.0198718690872193,
+      "examples_seen": 16
+    },
+    {
+      "step": 2,
+      "train_loss": 1.0906744003295898,
+      "validation_loss": 1.0191867542266846,
+      "examples_seen": 32
+    },
+    {
+      "step": 3,
+      "train_loss": 0.8881364464759827,
+      "validation_loss": 1.0186433649063111,
+      "examples_seen": 48
+    },
+    {
+      "step": 4,
+      "train_loss": 0.9449038505554199,
+      "validation_loss": 1.0180322885513307,
+      "examples_seen": 64
+    },
+    {
+      "step": 5,
+      "train_loss": 1.111545205116272,
+      "validation_loss": 1.01736159324646,
+      "examples_seen": 80
+    }
+  ],
+  "epochs": [
+    {
+      "epoch": 1,
+      "complete": false,
+      "steps": 5,
+      "examples": 80,
+      "train_loss": 0.9975401520729065,
+      "seconds": 0.031136500008869916
+    }
+  ],
+  "sampling": {
+    "seconds": 0.026230874995235354,
+    "n_sequences": 200,
+    "steps": 20,
+    "seed": 10011,
+    "step_max_abs_normalized": [
+      4.144207954406738,
+      4.140667915344238,
+      4.304291725158691,
+      4.511167526245117,
+      4.584702968597412,
+      4.552743911743164,
+      4.502063751220703,
+      4.524144172668457,
+      4.679178714752197,
+      4.807213306427002,
+      4.712278842926025,
+      4.800309181213379,
+      4.877474308013916,
+      4.919822692871094,
+      4.9288811683654785,
+      4.944518566131592,
+      5.051080703735352,
+      5.031226634979248,
+      5.046331405639648,
+      5.0463128089904785
+    ],
+    "quantum_submitted_workloads": {},
+    "max_abs_physical": 3.375194405225174
+  },
+  "checkpoint": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/checkpoints/phase5_classical_seed11_n1000_best.pt",
+  "checkpoint_sha256": "47b0e72ce811d975904d9e393e65c0a5a51a33e658e7e4c71cfa456361a9d9c9",
+  "checkpoint_step": 5,
+  "normalization": {
+    "mean": -0.0025439600689291754,
+    "std": 0.669347797718038,
+    "n_sequences": 1000,
+    "sequence_length": 32,
+    "ddof": 0
+  },
+  "environment": {
+    "python": "3.12.3 (v3.12.3:f6650f9ad7, Apr  9 2024, 08:18:47) [Clang 13.0.0 (clang-1300.0.29.30)]",
+    "executable": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/.venv/bin/python",
+    "platform": "macOS-26.7.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 8,
+    "pythonhashseed": "0",
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "torch": "2.14.1",
+      "qiskit": "2.5.2",
+      "qiskit-machine-learning": "0.9.1",
+      "pytest": "9.1.1"
+    }
+  },
+  "dataset_sha256": {
+    "dataset.npz": "61f40b965ce2a97abde08ae8e3aa2e819e134ed1ced7d2d9e008ee776a9a6861",
+    "subsets.npz": "089e596097a6bd5880cd0c86bf57bbf2a7136e32ec62e6752742ff05907ac49b",
+    "normalization.json": "ee9129f1b4c0f29686dabd7c59bd7f649fd36fccde7329a9eb9b7d73621a1540"
+  },
+  "samples_file": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/samples/phase5_classical_seed11_n1000.npy",
+  "samples_sha256": "4ee69a7da7e5577cf498d8903825c5444822da912bd3a19b9f324950041d5900",
+  "figures_sha256": {
+    "phase5_classical_seed11_n1000_loss.png": "7801b4cbf6e1cf73a5e8f0a5ea3564d36dfea5a19410cfe9391e7e6e6d9a6954",
+    "phase5_classical_seed11_n1000_loss.pdf": "f433804e5d0cf6b0b8cb1653c2a3af8773e0d727ca76f7d40dac0a2550fb7dab",
+    "phase5_classical_seed11_n1000_generated_series.png": "bb48fe9d3cab800c0d7a3d50474177854452c82f28f4cf82c29f5dddbfecb59f",
+    "phase5_classical_seed11_n1000_generated_series.pdf": "ada5b38319e1daef79b66f58b416b4c6a280c05af5d00b568065cc1a84235573"
+  },
+  "optimizer_cost_estimates": {
+    "1000": {
+      "steps_per_epoch": 63,
+      "optimizer_seconds_per_epoch_estimate": 0.06312070685089566
+    },
+    "500": {
+      "steps_per_epoch": 32,
+      "optimizer_seconds_per_epoch_estimate": 0.03206131141632795
+    },
+    "250": {
+      "steps_per_epoch": 16,
+      "optimizer_seconds_per_epoch_estimate": 0.016030655708163977
+    },
+    "100": {
+      "steps_per_epoch": 7,
+      "optimizer_seconds_per_epoch_estimate": 0.00701341187232174
+    }
+  },
+  "estimate_limitations": "Median measured updates; optimizer-only extrapolation from this run, excluding validation/checkpoints. No convergence or hardware speedup claim.",
+  "generation_quality_metrics": "Not evaluated; formal quality comparisons in Phase 6"
+}

@@ -21,13 +21,13 @@ At the end of Phase 1, no dataset or model had been executed. Dataset generation
 | Dataset summaries and validation plots | Computed and verified in Phase 2 |
 | Classical training and generation quality | Five-update smoke completed; converged generation quality Not evaluated |
 | Standalone quantum forward/gradient/update tests | Passed in Phase 4 |
-| Hybrid training and generation quality | Not evaluated |
+| Hybrid training and generation quality | Paired five-update pilot completed; converged quality Not evaluated |
 | Wasserstein, mean/std/variance differences | Not evaluated |
 | ACF preservation/errors | Not evaluated |
-| Training, pilot and reverse-sampling timings | Classical smoke and standalone quantum timings measured; hybrid/full timings Not evaluated |
+| Training, pilot and reverse-sampling timings | Classical smoke and standalone quantum timings measured; hybrid pilot measured; full-run timings Not evaluated |
 | Limited-data comparisons across three seeds | Not evaluated |
 | Quantum circuit evaluation counts | Submitted estimator workloads measured in Phase 4; hardware execution Not evaluated |
-| Instantiated model parameter counts | Classical: 1,816; standalone quantum: 16; hybrid/control Not evaluated |
+| Instantiated model parameter counts | Classical: 1,816; hybrid: 1,812; matched control: 1,812; quantum bottleneck: 16 |
 
 Analytical architecture counts and schedule diagnostics in the methodology are design calculations, not measured model outcomes. Raw computed results will be saved under results/ before being reported here.
 
@@ -138,4 +138,52 @@ Binding instances repeated across observables count again. These are instrumente
 
 Circuit figures: results/figures/quantum_circuit.png, .pdf and .txt, exported from Qiskit's text drawer through Matplotlib without new dependencies. The PNG was visually inspected. Source/figure hashes, CPU thread counts and environment versions are in results/phase4_checks.json. No dependency version changed; pip check passed.
 
-No unresolved functional Phase 4 failure remains. A small teacher-target fit demonstrates differentiability/trainability only. Hybrid DDPM gradients, training/sampling cost, generation quality, data scarcity and quantum advantage remain Not evaluated. Phase 5 awaits explicit approval. Suggested commit: `feat: add four-qubit quantum bottleneck and standalone gradient validation`.
+No unresolved functional Phase 4 failure remains. A small teacher-target fit demonstrates differentiability/trainability only. Hybrid DDPM gradients, training/sampling cost, generation quality, data scarcity and quantum advantage remain Not evaluated. Phase 5 was subsequently approved; its computed evidence follows below. Suggested commit: `feat: add four-qubit quantum bottleneck and standalone gradient validation`.
+
+## Phase 5 — hybrid integration and paired pilots, 27 October 2026
+
+Phase 4 was committed and pushed as 4c8c811. Phase 5 is recorded in a separate implementation commit for publication. All **8 hybrid integration tests passed** in 3.922 seconds; all **58 regression tests passed** in 4.161 seconds, zero failures/errors. Checkpoint-to-sample exact reproduction passed for both pilot models; no generated sample exactly copied a raw dataset row (this is not a full memorization analysis). Identical initial shared states and data/config/RNG settings were verified; no architecture, dataset or noise-schedule change occurred.
+
+Instantiated trainable counts: classical 1,816; hybrid 1,812; optional bias-free classical control 1,812. The control is implemented/tested; its generation quality and full training remain Not evaluated. Matching count is not matching expressiveness.
+
+Both executed pilots: seed 11; selected training size 1,000; 200 validation rows; five optimizer updates with batch 16, Adam LR 0.001; 80 training-example exposures/0.08 effective epochs; validation every update using the same fixed corruption; exactly 200 reverse-generated rows with seed 10011 and 20 diffusion steps. Initial embedding/encoder/decoder values were explicitly paired, verified by shared-state hash 1dc188938cb729c5c8571609d4ed934eba6c16a2054ae88ea19740783818d98d.
+
+| Measured pilot outcome | Classical | Hybrid (ideal simulation) |
+|---|---:|---:|
+| Initial validation MSE | 1.020604596 | 1.020297618 |
+| Best/final validation MSE | 1.017361593 | 1.017026100 |
+| Warm-up seconds | 0.064070667 | 1.420005833 |
+| Training seconds, including validation/checkpoints | 0.043670083 | 8.085902042 |
+| Median optimizer-update seconds | 0.001001916 | 1.156238833 |
+| Validation seconds total (six passes) | 0.016836916 | 2.130749542 |
+| Sampling 200 sequences, seconds | 0.026230875 | 7.127931708 |
+
+Both best checkpoints were selected at step 5. All outputs were finite, shape (200,32). Loss and generated-series PNG/PDF figures were exported for each arm; hybrid PNGs were visually inspected and remain noise-like. The small validation-MSE difference is not a generation-quality or quantum-superiority result. Formal held-out Wasserstein/ACF and scarcity metrics remain Not evaluated.
+
+The shared optimizer produced nonzero finite gradients and actual updates in every hybrid component:
+
+| Component | L2 parameter change after five updates |
+|---|---:|
+| timestep_encoding | 0.040871968 |
+| encoder | 0.073914496 |
+| bottleneck | 0.012873851 |
+| decoder | 0.080245579 |
+
+Per-update gradient norms and last/best model parameter-displacement records are retained in each raw pilot JSON. Quantum submitted expectation workloads: training (including all six validation passes) 17,920, and reverse sampling 16,000. These are repeated-binding/observable evaluations as defined in Phase 4, not unique circuits, hardware jobs or shots. Warm-up workloads are recorded separately. There was no hardware execution.
+
+**Runtime estimates, not executed full runs:** median hybrid full-batch update cost 1.156239 seconds. Multiplying by ceil(N/16) gives optimizer-only per-epoch estimates:
+
+| Training rows | Updates/epoch | Hybrid optimizer seconds/epoch, estimated |
+|---|---:|---:|
+| 1000 | 63 | 72.843046 |
+| 500 | 32 | 36.999643 |
+| 250 | 16 | 18.499821 |
+| 100 | 7 | 8.093672 |
+
+For illustration only, one epoch for each of the 12 hybrid seed/fraction conditions would cost approximately 409.309 optimizer seconds; twelve 200-row reverse-sampling runs add about 85.535 seconds. This epoch-based illustration is not the proposed fixed-update scarcity protocol and does not establish convergence.
+
+For a common update budget K in each of the 24 classical+hybrid runs, optimizer-only time is estimated as 13.886889*K seconds. Add validation (about 0.355125 seconds per full hybrid validation pass in this pilot), checkpoint I/O, warm-up and sampling. The optional matched control adds 12 runs if included later; no full control timing has been measured. Estimates use one seed/fraction and five full batches, may change with short final batches/system load, and do not specify a sufficient training budget. K remains unset/unapproved.
+
+Raw pilot records: results/phase5_classical_seed11_n1000.json and phase5_hybrid_seed11_n1000.json. Each has a corresponding best checkpoint under results/checkpoints (ignored), physical-scale samples under results/samples, and loss/generated-series PNG/PDF files under results/figures. Logs: phase5_classical_pilot.log, phase5_hybrid_pilot.log, phase5_hybrid_tests.log, phase5_regression_tests.log and phase5_verification.log. Summary verification/cost coefficients/source hashes: results/phase5_checks.json.
+
+No unresolved functional Phase 5 failure remains. There has been no long training or Phase 6 execution. Full generation quality, scarcity comparisons, repeated-run variability and quantum advantage remain Not evaluated. Phase 6 implementation and a substantial experimental budget require explicit approval. Suggested commit: `feat: integrate hybrid diffusion model and validate paired training pilots`.
