@@ -74,6 +74,62 @@ class CountingStatevectorEstimator(StatevectorEstimator):
         return super().run(coerced, precision=precision)
 
 
+class BatchedStatevectorEstimator(CountingStatevectorEstimator):
+    """Same ideal states and parameter-shift semantics, with batched execution."""
+    def _run(self, pubs):
+        from qiskit.primitives.containers import DataBin, PrimitiveResult, PubResult
+        from models.batched_statevector import evaluate_pub
+        groups = {}
+        for index, pub in enumerate(pubs):
+            key = (id(pub.circuit), pub.shape, pub.precision)
+            groups.setdefault(key, []).append((index, pub))
+        results = [None] * len(pubs)
+        for group in groups.values():
+            circuit = group[0][1].circuit
+            values = np.stack([np.broadcast_to(pub.parameter_values.as_array(circuit.parameters),
+                                               pub.shape + (circuit.num_parameters,)) for _, pub in group])
+            observables = np.stack([np.broadcast_to(np.asarray(pub.observables), pub.shape) for _, pub in group])
+            merged = EstimatorPub.coerce((circuit, observables, values, group[0][1].precision))
+            result = evaluate_pub(merged)
+            for position, (index, pub) in enumerate(group):
+                if result is None:
+                    results[index] = super()._run_pub(pub)
+                else:
+                    evs = result.data.evs[position]
+                    results[index] = PubResult(DataBin(evs=evs, stds=np.zeros_like(evs), shape=pub.shape),
+                                               metadata=result.metadata)
+        return PrimitiveResult(results, metadata={'version': 2})
+
+    def _run_pub(self, pub):
+        from models.batched_statevector import evaluate_pub
+        result = evaluate_pub(pub)
+        return super()._run_pub(pub) if result is None else result
+
+
+class BatchedParamShiftEstimatorGradient(ParamShiftEstimatorGradient):
+    """Same +/- pi/2 rule and Qiskit chain rule; batch shifts in each PUB."""
+    def _run_unique(self, circuits, observables, parameter_values, parameters, **options):
+        from qiskit_machine_learning.gradients import EstimatorGradientResult
+        from qiskit.providers import Options
+        if self._pass_manager is not None:
+            return super()._run_unique(circuits, observables, parameter_values, parameters, **options)
+        pubs, metadata, sizes = [], [], []
+        for circuit, observable, values, requested in zip(circuits, observables, parameter_values, parameters):
+            order = {parameter: index for index, parameter in enumerate(circuit.parameters)}
+            n = len(requested)
+            shifts = np.zeros((n, len(order)))
+            for row, parameter in enumerate(requested):
+                shifts[row, order[parameter]] = np.pi / 2
+            shifted = np.concatenate((np.asarray(values) + shifts, np.asarray(values) - shifts))
+            pubs.append((circuit, observable, shifted))
+            metadata.append({'parameters': requested})
+            sizes.append(n)
+        results = self._estimator.run(pubs).result()
+        gradients = [(result.data.evs[:n] - result.data.evs[n:]) / 2
+                     for result, n in zip(results, sizes)]
+        return EstimatorGradientResult(gradients=gradients, metadata=metadata, options=Options(**options))
+
+
 class QuantumLayer(nn.Module):
     """CPU float32 features (B,4) → four local-Z expectation values (B,4)."""
     def __init__(self, seed: int = 11, config: ModelConfig = DEFAULT_CONFIG.model):
@@ -82,8 +138,11 @@ class QuantumLayer(nn.Module):
             raise ValueError("Seed must be an integer in [0,2**32)")
         self.seed = seed
         self.specification = build_quantum_circuit(config)
-        self.estimator = CountingStatevectorEstimator(seed)
-        self.gradient = ParamShiftEstimatorGradient(self.estimator)
+        self.backend = config.quantum_backend
+        estimator_type = BatchedStatevectorEstimator if self.backend == 'batched_statevector' else CountingStatevectorEstimator
+        self.estimator = estimator_type(seed)
+        gradient_type = BatchedParamShiftEstimatorGradient if self.backend == 'batched_statevector' else ParamShiftEstimatorGradient
+        self.gradient = gradient_type(self.estimator)
         self.qnn = EstimatorQNN(circuit=self.specification.circuit,
                                 estimator=self.estimator,
                                 observables=self.specification.observables,

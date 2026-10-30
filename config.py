@@ -1,5 +1,6 @@
 """Central scientific specification; importing this file starts no work."""
 from dataclasses import asdict, dataclass, field
+import math
 
 PAPER_TITLE = "Quantum Generative AI: A Survey of Hybrid Architectures and Emerging Applications"
 
@@ -19,6 +20,7 @@ class DatasetConfig:
 
 @dataclass(frozen=True)
 class ModelConfig:
+    quantum_backend: str = "qiskit"
     hidden_dim: int = 16
     timestep_dim: int = 16
     bottleneck_dim: int = 4
@@ -48,6 +50,13 @@ class TrainingConfig:
     device: str = "cpu"
 
 @dataclass(frozen=True)
+class LossConfig:
+    objective: str = "noise"
+    lambda_acf: float = 1.0  # Provisional pilot value; tune on validation only.
+    max_lag: int = 10
+    epsilon: float = 1e-12
+
+@dataclass(frozen=True)
 class EvaluationConfig:
     generated_sequences: int = 200
     max_acf_lag: int = 10
@@ -62,8 +71,18 @@ class ExperimentConfig:
     diffusion: DiffusionConfig = field(default_factory=DiffusionConfig)
     training: TrainingConfig = field(default_factory=TrainingConfig)
     evaluation: EvaluationConfig = field(default_factory=EvaluationConfig)
+    loss: LossConfig = field(default_factory=LossConfig)
 
     def validate(self) -> None:
+        loss = self.loss
+        if loss.objective not in ("noise", "noise_acf"):
+            raise ValueError("Unknown training objective")
+        if not math.isfinite(loss.lambda_acf) or loss.lambda_acf < 0:
+            raise ValueError("ACF weight must be finite and nonnegative")
+        if not isinstance(loss.max_lag, int) or not 1 <= loss.max_lag < self.dataset.sequence_length:
+            raise ValueError("ACF loss lag must be an integer in [1,L)")
+        if not math.isfinite(loss.epsilon) or loss.epsilon <= 0:
+            raise ValueError("ACF epsilon must be finite and positive")
         d, m, q, t, e = self.dataset, self.model, self.diffusion, self.training, self.evaluation
         if sum(d.split_sizes) != d.n_sequences or any(n <= 0 for n in d.split_sizes):
             raise ValueError("Split sizes must be positive and sum to dataset size")
@@ -82,8 +101,10 @@ class ExperimentConfig:
                 raise ValueError("Parameter range must increase")
         if not d.noise_std > 0 or d.normalization != "per_subset_global_zscore":
             raise ValueError("Invalid noise or normalization policy")
-        if q.steps != 20 or not 0 < q.beta_start < q.beta_end < 1:
+        if not isinstance(q.steps, int) or q.steps < 2 or not 0 < q.beta_start < q.beta_end < 1:
             raise ValueError("Invalid diffusion schedule")
+        if m.quantum_backend not in ("qiskit", "batched_statevector"):
+            raise ValueError("Unknown quantum simulator backend")
         if not t.learning_rate > 0 or t.batch_size <= 0 or t.pilot_steps <= 0:
             raise ValueError("Training settings must be positive")
         if any(budget is not None and budget <= 0 for budget in (t.epochs, t.max_steps)):
@@ -100,3 +121,20 @@ class ExperimentConfig:
         return asdict(self)
 
 DEFAULT_CONFIG = ExperimentConfig()
+
+
+def config_from_dict(record: dict) -> ExperimentConfig:
+    """Restore JSON lists to immutable config tuples, including older records."""
+    dataset = dict(record['dataset'])
+    for key in ('split_sizes', 'subset_sizes', 'amplitude_range', 'frequency_range', 'harmonic_range'):
+        dataset[key] = tuple(dataset[key])
+    model = dict(record['model'])
+    model['rotations'] = tuple(model['rotations'])
+    model['entanglement_edges'] = tuple(tuple(edge) for edge in model['entanglement_edges'])
+    training = dict(record['training'])
+    training['seeds'] = tuple(training['seeds'])
+    config = ExperimentConfig(dataset=DatasetConfig(**dataset), model=ModelConfig(**model),
+                              diffusion=DiffusionConfig(**record['diffusion']), training=TrainingConfig(**training),
+                              evaluation=EvaluationConfig(**record['evaluation']), loss=LossConfig(**record.get('loss', {})))
+    config.validate()
+    return config

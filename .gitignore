@@ -7,3 +7,6 @@ data/datasets/*
 !data/datasets/.gitkeep
 results/checkpoints/*
 !results/checkpoints/.gitkeep
+results/**/checkpoints/
+tmp/phase7_matplotlib/
+tmp/phase7_cache/

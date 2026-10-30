@@ -1,0 +1,12 @@
+{
+  "status": "complete",
+  "stage": "complete",
+  "completed_final_runs": 36,
+  "total_final_runs": 36,
+  "started_at_utc": "2026-10-30T16:02:09.086451+00:00",
+  "updated_at_utc": "2026-10-30T16:35:24.283087+00:00",
+  "current_run": "phase7_seed33_n100_hybrid_acf",
+  "current_progress_file": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase7/final/phase7_seed33_n100_hybrid_acf_progress.json",
+  "selected_steps": 1000,
+  "selected_lambda_acf": 1.0
+}

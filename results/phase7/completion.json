@@ -1,0 +1,64 @@
+{
+  "status": "complete",
+  "final_runs": 36,
+  "verified_groups": 12,
+  "selected_steps": 1000,
+  "selected_lambda_acf": 1.0,
+  "schedule": {
+    "steps": 100,
+    "beta_start": 0.0001,
+    "beta_end": 0.1
+  },
+  "terminal_signal_variance": 0.0056187608279287815,
+  "test_used_for_selection": false,
+  "protocol_sha256": "ce1e6f24845d7a5f9ad764acd97d147e14f9dd5acd57db156bfa91adff34d4e4",
+  "frozen_selection_sha256": "6584aaa624740d19857925be5121e99387629f3f5a0633cf3b5811edacacdfa7",
+  "effective_epochs_by_subset": {
+    "1000": [
+      15.88,
+      15.88,
+      15.88,
+      15.88,
+      15.88,
+      15.88,
+      15.88,
+      15.88,
+      15.88
+    ],
+    "500": [
+      31.256,
+      31.256,
+      31.256,
+      31.256,
+      31.256,
+      31.256,
+      31.256,
+      31.256,
+      31.256
+    ],
+    "250": [
+      62.512,
+      62.512,
+      62.512,
+      62.512,
+      62.512,
+      62.512,
+      62.512,
+      62.512,
+      62.512
+    ],
+    "100": [
+      142.96,
+      142.96,
+      142.96,
+      142.96,
+      142.96,
+      142.96,
+      142.96,
+      142.96,
+      142.96
+    ]
+  },
+  "convergence_claim": false,
+  "next_phase": "Phase 8: aggregation, interpretation and report"
+}

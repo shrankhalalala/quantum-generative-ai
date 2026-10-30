@@ -1,6 +1,6 @@
 # Implementation guide
 
-The pipeline loads normalized training sequences, adds known diffusion noise, trains a timestep-conditioned noise predictor, then generates new sequences by reversing the noise process. The hybrid uses the same pipeline with a quantum bottleneck. Equations and comparison controls are in [EXPERIMENTAL_METHODOLOGY.md](EXPERIMENTAL_METHODOLOGY.md).
+The pipeline loads normalized training sequences, adds known diffusion noise, trains a timestep-conditioned noise predictor, then generates new sequences by reversing the noise process. The hybrid uses the same pipeline with a quantum bottleneck. The guided hybrid reuses that architecture and adds a training-only ACF objective; reverse sampling is unchanged. Equations and comparison controls are in [EXPERIMENTAL_METHODOLOGY.md](EXPERIMENTAL_METHODOLOGY.md).
 
 ## Configuration and data
 
@@ -23,6 +23,7 @@ Raw arrays remain float64; training converts normalized arrays to float32. Valid
 |---|---|
 | models/classical_denoiser.py | Noisy (B,32) + timestep (B,) → predicted noise (B,32). `Denoiser` separates embedding, encoder, bottleneck and decoder; subclasses provide the baseline or bias-free control. |
 | models/quantum_layer.py | Features (B,4) → four local-Z expectations. `build_quantum_circuit` orders inputs, 16 weights and observables; `QuantumLayer` applies pi*Tanh and TorchConnector. `CountingStatevectorEstimator` counts submitted workloads. |
+| models/batched_statevector.py | Optional exact vectorized statevector execution for Phase 7; reference/fallback equivalence is tested. BatchedStatevectorEstimator and BatchedParamShiftEstimatorGradient in quantum_layer.py preserve the same circuit and parameter-shift rule while batching work. |
 | models/hybrid_denoiser.py | Same inputs/outputs as the baseline; `HybridDenoiser` replaces only its bottleneck with QuantumLayer. |
 | models/factory.py | Model choice/seed → initialized model. `make_model` and `copy_shared_state` pair common weights without sharing storage; `shared_state_sha256` identifies those values. |
 | diffusion/noise_schedule.py | Config → fixed schedule buffers. `add_noise` implements forward corruption; `reverse_mean` and `reverse_step` implement the DDPM reverse update. |
@@ -34,13 +35,18 @@ The timestep embedding identifies the diffusion noise level, not observation tim
 
 | File | Inputs → outputs; main functions |
 |---|---|
-| training/train.py | Model/data/explicit budget → losses, timings and best checkpoint. `train_model` uses Adam and noise MSE; `validation_draws` fixes corruption; `validation_loss` weights all entries equally; `restore_checkpoint` reloads inference state. The CLI also samples, inverse-normalizes and saves results. |
+| training/train.py | Model/data/explicit budget → losses, timings and best checkpoint. `train_model` uses Adam with noise MSE or noise MSE plus weighted ACF guidance; `validation_draws` fixes corruption; `validation_loss` weights all entries equally; `restore_checkpoint` reloads inference state. The CLI also samples, inverse-normalizes and saves results. |
+| training/losses.py | Reconstructs clean sequences from predicted noise and computes differentiable row-wise ACF guidance; zero guidance weight preserves baseline gradients. |
+| evaluation/metrics.py | Generated/reference arrays in physical units → Wasserstein distance, moment errors and mean-ACF error; undefined ACF rows are reported explicitly. |
+| experiments/phase7.py | Frozen protocol → validation-only budget/lambda selection, all 36 final runs, durable progress and all-checkpoint reproduction verification. Completed cases are reused after checks; interrupted training attempts are preserved and restarted. |
+| experiments/compare.py | Runs classical, hybrid and hybrid_acf with one common budget, checks paired seeds/settings/initial states and exports comparison JSON/CSV. |
 | training/plotting.py | Recorded losses/generated arrays → model-labeled PNG/PDF figures through `plot_run`. |
 | scripts/check_environment.py | Installed environment → import/API, RNG, autograd and rendering checks. |
 | scripts/check_quantum_layer.py | Standalone layer → output/gradient/timing report and diagram. `statevector_outputs` is an independent reference; `finite_difference_check` checks derivatives; `optimize_toy` verifies ten optimizer updates. |
 | scripts/check_hybrid_model.py | Existing paired pilot records → reproducibility and cost report. `verify_pilots` checks matching settings, joint updates, workloads and exact checkpoint-to-sample regeneration. |
-| tests/ | Configuration, data/leakage, DDPM mathematics, quantum gradients and hybrid integration tests. Latest full suite: 58 passed. |
+| scripts/check_three_configurations.py | Three run records → pairing, checksum, exact checkpoint/sample reproduction, held-out metric reproduction and guided gradient/update verification. |
+| tests/ | Configuration, data/leakage, DDPM mathematics, quantum gradients and hybrid integration tests. Phase 6 suite: 70 passed; Phase 7 suite: 79 passed (see results/phase7_tests.log). |
 
 One optimizer updates all classical and quantum parameters. Separate RNG streams keep validation independent of training draws. Per-component gradient norms and parameter changes verify joint optimization; a shared seed alone cannot guarantee paired initial weights, so the factory copies them explicitly.
 
-Imports never launch experiments. Full budgets remain unset, and all training commands require an explicit smoke/step/epoch budget. Current results are short functional pilots; formal quality and scarcity evaluation are pending. See [RESULTS.md](RESULTS.md).
+Imports never launch experiments. Full budgets remain unset, and all training commands require an explicit smoke/step/epoch budget. Historical results include short pilots. Phase 7 completed the full 36-run cost-bounded grid and verification; convergence and realistic generation were not established. See PHASE7_RESULTS.md and PROJECT_PHASES.md. Phase 8 aggregation/reporting remains pending. See [RESULTS.md](RESULTS.md).

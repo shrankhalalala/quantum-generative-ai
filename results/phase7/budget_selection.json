@@ -1,0 +1,8 @@
+{
+  "selected_steps": 1000,
+  "relative_validation_noise_improvement_after_500": 0.01617228670188945,
+  "best_validation_noise_mse_by_500": 0.9394673919677734,
+  "best_validation_noise_mse_by_1000": 0.9242740559577942,
+  "rule": "Choose 1000 only if best validation noise MSE improves by at least 0.5% after step 500; otherwise 500",
+  "test_metrics_used": false
+}

@@ -1,0 +1,2 @@
+# CSV writers use standard CRLF record separators; preserve generated evidence.
+*.csv whitespace=cr-at-eol

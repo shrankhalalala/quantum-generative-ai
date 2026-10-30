@@ -1,0 +1,33 @@
+{
+  "selected_lambda_acf": 1.0,
+  "selected_steps": 1000,
+  "candidates": [
+    {
+      "lambda_acf": 0.0,
+      "validation_noise_mse": 0.9242740559577942,
+      "validation_generated_acf_mae": 0.3943295285170997,
+      "validation_generated_wasserstein_1": 8.958082450397352
+    },
+    {
+      "lambda_acf": 0.1,
+      "validation_noise_mse": 0.9240785789489746,
+      "validation_generated_acf_mae": 0.39432207763775257,
+      "validation_generated_wasserstein_1": 8.955829724504161
+    },
+    {
+      "lambda_acf": 1.0,
+      "validation_noise_mse": 0.9227863764762878,
+      "validation_generated_acf_mae": 0.39425816144432535,
+      "validation_generated_wasserstein_1": 8.94529952517734
+    },
+    {
+      "lambda_acf": 10.0,
+      "validation_noise_mse": 0.9927695226669312,
+      "validation_generated_acf_mae": 0.3976944946843569,
+      "validation_generated_wasserstein_1": 9.38338420407805
+    }
+  ],
+  "selection_rule": "Among positive weights with validation noise MSE <= 1.10 times the zero-weight control, minimize generated-validation ACF MAE; ties prefer smaller lambda",
+  "test_metrics_used": false,
+  "frozen_at_utc": "2026-10-30T16:07:51.411730+00:00"
+}

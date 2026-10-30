@@ -1,0 +1,34 @@
+/Users/shrankhalasingh/.matplotlib is not a writable directory
+Matplotlib created a temporary cache directory at /var/folders/nm/6kcmwvl14g5bvyyh4j2_37380000gn/T/matplotlib-yr0zgn_0 because there was an issue with the default path (/Users/shrankhalasingh/.matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/shrankhalasingh/.cache/fontconfig
+	/Users/shrankhalasingh/.fontconfig
+Matplotlib is building the font cache; this may take a moment.
+Completed 5 updates; parameters=1816; best checkpoint step=5
+Training=0.043036s; sampling 200 sequences=0.024435s
+Run evidence: /Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase6_three_config_seed11_n1000_classical.json
+/Users/shrankhalasingh/.matplotlib is not a writable directory
+Matplotlib created a temporary cache directory at /var/folders/nm/6kcmwvl14g5bvyyh4j2_37380000gn/T/matplotlib-u0dvg0jg because there was an issue with the default path (/Users/shrankhalasingh/.matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/shrankhalasingh/.cache/fontconfig
+	/Users/shrankhalasingh/.fontconfig
+Matplotlib is building the font cache; this may take a moment.
+Completed 5 updates; parameters=1812; best checkpoint step=5
+Training=8.247862s; sampling 200 sequences=7.043996s
+Run evidence: /Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase6_three_config_seed11_n1000_hybrid.json
+/Users/shrankhalasingh/.matplotlib is not a writable directory
+Matplotlib created a temporary cache directory at /var/folders/nm/6kcmwvl14g5bvyyh4j2_37380000gn/T/matplotlib-5c64fnhp because there was an issue with the default path (/Users/shrankhalasingh/.matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+
+Fontconfig error: No writable cache directories
+	/opt/homebrew/var/cache/fontconfig
+	/Users/shrankhalasingh/.cache/fontconfig
+	/Users/shrankhalasingh/.fontconfig
+Matplotlib is building the font cache; this may take a moment.
+Completed 5 updates; parameters=1812; best checkpoint step=5
+Training=8.042639s; sampling 200 sequences=7.107002s
+Run evidence: /Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase6_three_config_seed11_n1000_hybrid_acf.json
+Three-configuration comparison: /Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase6_three_config_seed11_n1000_comparison.json

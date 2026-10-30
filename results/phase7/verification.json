@@ -1,0 +1,353 @@
+{
+  "status": "passed",
+  "groups": {
+    "phase7_seed11_n1000": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed11_n500": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed11_n250": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed11_n100": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed22_n1000": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed22_n500": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed22_n250": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed22_n100": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed33_n1000": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed33_n500": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed33_n250": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    },
+    "phase7_seed33_n100": {
+      "status": "passed",
+      "pairing": "passed",
+      "runs": {
+        "classical": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        },
+        "hybrid_acf": {
+          "checkpoint_checksum": "passed",
+          "sample_checksum": "passed",
+          "checkpoint_sample_reproduction": "exact",
+          "held_out_metric_reproduction": "exact",
+          "generated_sequences": 200
+        }
+      },
+      "guided_joint_gradient_and_update_checks": "passed",
+      "scope": "Reproducibility checks alone do not establish convergence or quantum advantage"
+    }
+  }
+}

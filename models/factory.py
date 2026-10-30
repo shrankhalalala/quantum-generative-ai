@@ -4,7 +4,7 @@ import torch
 from config import DEFAULT_CONFIG, ExperimentConfig
 from models.classical_denoiser import ClassicalDenoiser, ParameterMatchedDenoiser
 
-MODEL_TYPES = ("classical", "hybrid", "classical_matched")
+MODEL_TYPES = ("classical", "hybrid", "hybrid_acf", "classical_matched")
 SHARED_COMPONENTS = ("timestep_encoding", "encoder", "decoder")
 
 
@@ -25,6 +25,16 @@ def shared_state_sha256(model: torch.nn.Module) -> str:
     return digest.hexdigest()
 
 
+def model_state_sha256(model: torch.nn.Module) -> str:
+    """Identify all initial parameters, including the quantum bottleneck."""
+    digest = hashlib.sha256()
+    for name, value in sorted(model.state_dict().items()):
+        tensor = value.detach().cpu().contiguous()
+        digest.update(f"{name}:{tensor.dtype}:{tuple(tensor.shape)}".encode())
+        digest.update(tensor.numpy().tobytes())
+    return digest.hexdigest()
+
+
 def make_model(model_type: str, seed: int = 11, config: ExperimentConfig = DEFAULT_CONFIG):
     """Reference baseline supplies identical shared initial states in every arm."""
     config.validate()
@@ -37,7 +47,7 @@ def make_model(model_type: str, seed: int = 11, config: ExperimentConfig = DEFAU
         reference = ClassicalDenoiser(config.model, config.diffusion.steps)
         if model_type == "classical":
             return reference
-        if model_type == "hybrid":
+        if model_type in ("hybrid", "hybrid_acf"):
             # Keep classical-only imports/usage independent of the Qiskit stack.
             from models.hybrid_denoiser import HybridDenoiser
             model = HybridDenoiser(config.model, config.diffusion.steps, seed=seed)

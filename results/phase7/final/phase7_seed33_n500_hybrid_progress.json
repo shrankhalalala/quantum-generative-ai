@@ -1,0 +1,12 @@
+{
+  "step": 1000,
+  "budget": 1000,
+  "best_step": 1000,
+  "best_validation_noise_mse": 0.938597948551178,
+  "validation": {
+    "noise_loss": 0.938597948551178,
+    "acf_loss": 0.177860004901886,
+    "total_loss": 0.938597948551178
+  },
+  "elapsed_seconds": 68.99804733303608
+}

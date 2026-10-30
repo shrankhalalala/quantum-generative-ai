@@ -23,6 +23,15 @@ def plot_run(history: list[dict], generated: np.ndarray, time: np.ndarray,
         ax.set(xlabel='Optimizer updates',ylabel='Noise-prediction MSE',title=f'{model_label} DDPM: losses' + (' (smoke test; not convergence evidence)' if smoke else ''))
         ax.legend(frameon=False); ax.grid(alpha=.2)
         export(fig,'loss')
+        if 'train_acf_loss' in history[-1]:
+            fig,axes=plt.subplots(1,2,figsize=(10,4),layout='constrained')
+            for ax,key,label in zip(axes,('acf_loss','total_loss'),('ACF loss','Training objective')):
+                ax.plot([row['step'] for row in history], [row.get('train_'+key) for row in history],label='Train')
+                ax.plot([row['step'] for row in history], [row['validation_'+key] for row in history],label='Validation')
+                ax.set(xlabel='Optimizer updates',ylabel=label)
+                ax.legend(frameon=False); ax.grid(alpha=.2)
+            fig.suptitle(f'{model_label}: loss components' + (' (pilot diagnostics)' if smoke else ''))
+            export(fig,'loss_components')
         fig,axes=plt.subplots(3,2,figsize=(10,7),sharex=True,sharey=True,layout='constrained')
         for index,ax in enumerate(axes.flat):
             ax.plot(time,generated[index],linewidth=1.5,color='#2463a0')

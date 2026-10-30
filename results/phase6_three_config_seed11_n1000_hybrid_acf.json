@@ -1,0 +1,465 @@
+{
+  "purpose": "smoke test, not convergence or quality evidence",
+  "config": {
+    "dataset": {
+      "n_sequences": 1400,
+      "sequence_length": 32,
+      "split_sizes": [
+        1000,
+        200,
+        200
+      ],
+      "subset_sizes": [
+        1000,
+        500,
+        250,
+        100
+      ],
+      "generation_seed": 2026,
+      "split_seed": 2027,
+      "amplitude_range": [
+        0.6,
+        1.2
+      ],
+      "frequency_range": [
+        1.0,
+        3.0
+      ],
+      "harmonic_range": [
+        0.0,
+        0.3
+      ],
+      "noise_std": 0.05,
+      "normalization": "per_subset_global_zscore"
+    },
+    "model": {
+      "hidden_dim": 16,
+      "timestep_dim": 16,
+      "bottleneck_dim": 4,
+      "n_qubits": 4,
+      "quantum_layers": 2,
+      "rotations": [
+        "RY",
+        "RX"
+      ],
+      "entanglement_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    "diffusion": {
+      "steps": 20,
+      "beta_start": 0.0001,
+      "beta_end": 0.02
+    },
+    "training": {
+      "learning_rate": 0.001,
+      "batch_size": 16,
+      "epochs": null,
+      "max_steps": 5,
+      "pilot_steps": 5,
+      "seeds": [
+        11,
+        22,
+        33
+      ],
+      "device": "cpu"
+    },
+    "evaluation": {
+      "generated_sequences": 200,
+      "max_acf_lag": 10,
+      "ddof": 0,
+      "validation_seed": 2028,
+      "sampling_seed_offset": 10000
+    },
+    "loss": {
+      "objective": "noise_acf",
+      "lambda_acf": 1.0,
+      "max_lag": 10,
+      "epsilon": 1e-12
+    }
+  },
+  "model_choice": "hybrid_acf",
+  "initial_shared_state_sha256": "1dc188938cb729c5c8571609d4ed934eba6c16a2054ae88ea19740783818d98d",
+  "initial_model_state_sha256": "e94d7edd2c9443a274a202340ad75552f8ec3b7c9d9e50b457aadbd025991eee",
+  "best_model_parameter_change_l2": {
+    "timestep_encoding": 0.040817553583566486,
+    "encoder": 0.07388829418126588,
+    "bottleneck": 0.012922325822337176,
+    "decoder": 0.080143877132958
+  },
+  "warmup_quantum_submitted_workloads": {
+    "run_calls": 2,
+    "pubs": 2564,
+    "submitted_parameter_bindings": 2624,
+    "observable_expectation_evaluations": 2624
+  },
+  "execution": {
+    "device": "cpu",
+    "dtype": "float32",
+    "torch_threads": 4,
+    "torch_interop_threads": 8,
+    "quantum_simulator": "ideal StatevectorEstimator, zero precision",
+    "quantum_hardware_execution": false
+  },
+  "seed": 11,
+  "subset_size": 1000,
+  "warmup_seconds": 1.246310916962102,
+  "training": {
+    "objective": "noise_acf",
+    "lambda_acf": 1.0,
+    "effective_lambda_acf": 1.0,
+    "checkpoint_selection": "validation_noise_mse",
+    "losses_per_update": [
+      {
+        "step": 1,
+        "noise_loss": 0.9459709525108337,
+        "acf_loss": 0.003945488017052412,
+        "total_loss": 0.949916422367096
+      },
+      {
+        "step": 2,
+        "noise_loss": 1.0924584865570068,
+        "acf_loss": 0.005915213376283646,
+        "total_loss": 1.0983736515045166
+      },
+      {
+        "step": 3,
+        "noise_loss": 0.8921185731887817,
+        "acf_loss": 0.004803356248885393,
+        "total_loss": 0.8969219326972961
+      },
+      {
+        "step": 4,
+        "noise_loss": 0.9324816465377808,
+        "acf_loss": 0.0033975807018578053,
+        "total_loss": 0.9358792304992676
+      },
+      {
+        "step": 5,
+        "noise_loss": 1.1149685382843018,
+        "acf_loss": 0.006148043554276228,
+        "total_loss": 1.1211166381835938
+      }
+    ],
+    "steps": 5,
+    "examples_seen": 80,
+    "validation_every": 1,
+    "effective_epochs": 0.08,
+    "completed_epochs": 0,
+    "trainable_parameters": 1812,
+    "training_seconds": 8.042638666986022,
+    "update_seconds": [
+      1.1638577500125393,
+      1.1523166660335846,
+      1.162725666014012,
+      1.2150634999852628,
+      1.1564964590361342
+    ],
+    "optimizer_loop_seconds": 5.850460041081533,
+    "mean_seconds_per_update": 1.1700920082163067,
+    "median_seconds_per_update": 1.162725666014012,
+    "validation_seconds": 2.1801662910729647,
+    "checkpoint_seconds": 0.011852250958327204,
+    "initial_validation_loss": 1.0202976179122925,
+    "best_validation_loss": 1.0170305967330933,
+    "best_step": 5,
+    "last_validation_loss": 1.0170305967330933,
+    "stream_seeds": {
+      "shuffle": 592467769,
+      "timesteps": 621272063,
+      "noise": 520846937,
+      "validation_timesteps": 3576903042,
+      "validation_noise": 4135667527
+    },
+    "gradient_norms_per_update": [
+      {
+        "timestep_encoding": 0.0023946084469623563,
+        "encoder": 0.05402497112386148,
+        "bottleneck": 0.02148564307694989,
+        "decoder": 0.16929091067829333
+      },
+      {
+        "timestep_encoding": 0.0029722672218134303,
+        "encoder": 0.0546918588204665,
+        "bottleneck": 0.012017489488505978,
+        "decoder": 0.16318004205869088
+      },
+      {
+        "timestep_encoding": 0.002024674672521807,
+        "encoder": 0.04575866859876952,
+        "bottleneck": 0.008453055440158853,
+        "decoder": 0.12130951902107275
+      },
+      {
+        "timestep_encoding": 0.002140344310319327,
+        "encoder": 0.06323249117134926,
+        "bottleneck": 0.030198906762387037,
+        "decoder": 0.1514899733474214
+      },
+      {
+        "timestep_encoding": 0.0030386710995259597,
+        "encoder": 0.07799764811398453,
+        "bottleneck": 0.02015069591858943,
+        "decoder": 0.17608294392791976
+      }
+    ],
+    "last_model_parameter_change_l2": {
+      "timestep_encoding": 0.040817553583566486,
+      "encoder": 0.07388829418126588,
+      "bottleneck": 0.012922325822337176,
+      "decoder": 0.080143877132958
+    },
+    "quantum_submitted_workloads": {
+      "run_calls": 88,
+      "pubs": 13132,
+      "submitted_parameter_bindings": 17920,
+      "observable_expectation_evaluations": 17920
+    }
+  },
+  "history": [
+    {
+      "step": 0,
+      "train_loss": null,
+      "validation_loss": 1.0202976179122925,
+      "examples_seen": 0,
+      "validation_noise_loss": 1.0202976179122925,
+      "validation_acf_loss": 0.003927836725488305,
+      "validation_total_loss": 1.024225459098816
+    },
+    {
+      "step": 1,
+      "train_loss": 0.9459709525108337,
+      "validation_loss": 1.0196313428878785,
+      "examples_seen": 16,
+      "train_noise_loss": 0.9459709525108337,
+      "train_acf_loss": 0.003945488017052412,
+      "train_total_loss": 0.949916422367096,
+      "validation_noise_loss": 1.0196313428878785,
+      "validation_acf_loss": 0.003922513881698251,
+      "validation_total_loss": 1.0235538482666016
+    },
+    {
+      "step": 2,
+      "train_loss": 1.0924584865570068,
+      "validation_loss": 1.0189466333389283,
+      "examples_seen": 32,
+      "train_noise_loss": 1.0924584865570068,
+      "train_acf_loss": 0.005915213376283646,
+      "train_total_loss": 1.0983736515045166,
+      "validation_noise_loss": 1.0189466333389283,
+      "validation_acf_loss": 0.003918041493743658,
+      "validation_total_loss": 1.0228646469116212
+    },
+    {
+      "step": 3,
+      "train_loss": 0.8921185731887817,
+      "validation_loss": 1.0183880615234375,
+      "examples_seen": 48,
+      "train_noise_loss": 0.8921185731887817,
+      "train_acf_loss": 0.004803356248885393,
+      "train_total_loss": 0.8969219326972961,
+      "validation_noise_loss": 1.0183880615234375,
+      "validation_acf_loss": 0.003913215296342969,
+      "validation_total_loss": 1.0223012828826905
+    },
+    {
+      "step": 4,
+      "train_loss": 0.9324816465377808,
+      "validation_loss": 1.0177551746368407,
+      "examples_seen": 64,
+      "train_noise_loss": 0.9324816465377808,
+      "train_acf_loss": 0.0033975807018578053,
+      "train_total_loss": 0.9358792304992676,
+      "validation_noise_loss": 1.0177551746368407,
+      "validation_acf_loss": 0.003908295724540949,
+      "validation_total_loss": 1.0216634607315063
+    },
+    {
+      "step": 5,
+      "train_loss": 1.1149685382843018,
+      "validation_loss": 1.0170305967330933,
+      "examples_seen": 80,
+      "train_noise_loss": 1.1149685382843018,
+      "train_acf_loss": 0.006148043554276228,
+      "train_total_loss": 1.1211166381835938,
+      "validation_noise_loss": 1.0170305967330933,
+      "validation_acf_loss": 0.003902312647551298,
+      "validation_total_loss": 1.0209329271316527
+    }
+  ],
+  "epochs": [
+    {
+      "epoch": 1,
+      "complete": false,
+      "steps": 5,
+      "examples": 80,
+      "train_loss": 0.9955996394157409,
+      "seconds": 7.675638417014852
+    }
+  ],
+  "sampling": {
+    "seconds": 7.107002415985335,
+    "n_sequences": 200,
+    "steps": 20,
+    "seed": 10011,
+    "step_max_abs_normalized": [
+      4.149554252624512,
+      4.151691913604736,
+      4.322323322296143,
+      4.535510540008545,
+      4.615119457244873,
+      4.589051246643066,
+      4.543971538543701,
+      4.570943355560303,
+      4.732480525970459,
+      4.866812229156494,
+      4.777004241943359,
+      4.871169567108154,
+      4.954304218292236,
+      5.002253532409668,
+      5.0167951583862305,
+      5.0368123054504395,
+      5.147309303283691,
+      5.132960319519043,
+      5.152064323425293,
+      5.153177261352539
+    ],
+    "quantum_submitted_workloads": {
+      "run_calls": 260,
+      "pubs": 1040,
+      "submitted_parameter_bindings": 16000,
+      "observable_expectation_evaluations": 16000
+    },
+    "max_abs_physical": 3.4467238910680633
+  },
+  "checkpoint": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/checkpoints/phase6_three_config_seed11_n1000_hybrid_acf_best.pt",
+  "checkpoint_sha256": "211e26fc2261ad83004b6baa47c726a263c068d2c551d174706c9791f873bfca",
+  "checkpoint_step": 5,
+  "normalization": {
+    "mean": -0.0025439600689291754,
+    "std": 0.669347797718038,
+    "n_sequences": 1000,
+    "sequence_length": 32,
+    "ddof": 0
+  },
+  "environment": {
+    "python": "3.12.3 (v3.12.3:f6650f9ad7, Apr  9 2024, 08:18:47) [Clang 13.0.0 (clang-1300.0.29.30)]",
+    "executable": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/.venv/bin/python",
+    "platform": "macOS-26.7.1-arm64-arm-64bit",
+    "machine": "arm64",
+    "processor": "arm",
+    "cpu_count": 8,
+    "pythonhashseed": null,
+    "packages": {
+      "numpy": "2.5.3",
+      "scipy": "1.18.1",
+      "matplotlib": "3.11.2",
+      "torch": "2.14.1",
+      "qiskit": "2.5.2",
+      "qiskit-machine-learning": "0.9.1",
+      "pytest": "9.1.1"
+    }
+  },
+  "dataset_sha256": {
+    "dataset.npz": "61f40b965ce2a97abde08ae8e3aa2e819e134ed1ced7d2d9e008ee776a9a6861",
+    "subsets.npz": "089e596097a6bd5880cd0c86bf57bbf2a7136e32ec62e6752742ff05907ac49b",
+    "normalization.json": "ee9129f1b4c0f29686dabd7c59bd7f649fd36fccde7329a9eb9b7d73621a1540"
+  },
+  "samples_file": "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/samples/phase6_three_config_seed11_n1000_hybrid_acf.npy",
+  "samples_sha256": "b12a207f82aae0aa0c8e3987aca2382593619f1944a91df6eda6f78abc1acc05",
+  "figures_sha256": {
+    "phase6_three_config_seed11_n1000_hybrid_acf_loss.png": "5947944e204a1355d6fb6e5c0c9d03909ae5a813b7ec003bb2819e434edad25a",
+    "phase6_three_config_seed11_n1000_hybrid_acf_loss.pdf": "f0bcf6dd11eb64198ea7122f8cf0aa6281d493331e9e252152cc91fc464233c3",
+    "phase6_three_config_seed11_n1000_hybrid_acf_loss_components.png": "6a95c822c38325cb85f2e1daca249303308397a7381c90e4b532631eca9e1890",
+    "phase6_three_config_seed11_n1000_hybrid_acf_loss_components.pdf": "f2f177615d7888b6b89759d551923360bec42b38b7675d91f57a6361c07cf1da",
+    "phase6_three_config_seed11_n1000_hybrid_acf_generated_series.png": "1de289bce3f65e5d9d7969442189cf7e345ef1832c6a3de3ce730424cb4e9640",
+    "phase6_three_config_seed11_n1000_hybrid_acf_generated_series.pdf": "427080bece1819f814481bc9727e4ed1356aed38a8ec38c4752a165efe8786e9"
+  },
+  "optimizer_cost_estimates": {
+    "1000": {
+      "steps_per_epoch": 63,
+      "optimizer_seconds_per_epoch_estimate": 73.25171695888275
+    },
+    "500": {
+      "steps_per_epoch": 32,
+      "optimizer_seconds_per_epoch_estimate": 37.20722131244838
+    },
+    "250": {
+      "steps_per_epoch": 16,
+      "optimizer_seconds_per_epoch_estimate": 18.60361065622419
+    },
+    "100": {
+      "steps_per_epoch": 7,
+      "optimizer_seconds_per_epoch_estimate": 8.139079662098084
+    }
+  },
+  "estimate_limitations": "Median measured updates; optimizer-only extrapolation from this run, excluding validation/checkpoints. No convergence or hardware speedup claim.",
+  "generation_quality_metrics": {
+    "n_generated": 200,
+    "n_reference": 200,
+    "marginal_wasserstein_1": 0.11682857666165042,
+    "max_acf_lag": 10,
+    "mean": {
+      "generated": -0.023137785012202386,
+      "reference": -0.004844844777955449,
+      "difference": -0.018292940234246935,
+      "absolute_error": 0.018292940234246935
+    },
+    "std": {
+      "generated": 0.7953818192732819,
+      "reference": 0.6683974170626136,
+      "difference": 0.1269844022106683,
+      "absolute_error": 0.1269844022106683
+    },
+    "variance": {
+      "generated": 0.6326322384304757,
+      "reference": 0.4467551071359734,
+      "difference": 0.18587713129450228,
+      "absolute_error": 0.18587713129450228
+    },
+    "near_constant_rows": {
+      "generated": [],
+      "reference": []
+    },
+    "acf_status": "ok",
+    "acf_mae": 0.37917655191344773,
+    "generated_mean_acf": [
+      1.0,
+      -0.026712525167575208,
+      0.005901180457030759,
+      -0.01409436402363997,
+      -0.03269215436946345,
+      -0.023089199066968703,
+      -0.04930135571719647,
+      -0.017866863259731965,
+      -0.03134475133991698,
+      -0.01004216933072716,
+      -0.03617028907099617
+    ],
+    "reference_mean_acf": [
+      1.0,
+      0.8743467764850351,
+      0.6143914133715018,
+      0.28935880553601195,
+      -0.022847400912744963,
+      -0.2687909719547578,
+      -0.42149075901706956,
+      -0.47574650431067567,
+      -0.43886644099280564,
+      -0.3341364752006492,
+      -0.19770153786060546
+    ]
+  },
+  "quality_interpretation": "Pilot diagnostics only; not convergence or superiority evidence"
+}

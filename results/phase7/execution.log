@@ -1,0 +1,54 @@
+Completed budget_pilot: 1000 updates, best validation MSE=0.924274
+Matplotlib is building the font cache; this may take a moment.
+Completed lambda_0p0: 1000 updates, best validation MSE=0.924274
+Completed lambda_0p1: 1000 updates, best validation MSE=0.924079
+Completed lambda_1p0: 1000 updates, best validation MSE=0.922786
+Completed lambda_10p0: 1000 updates, best validation MSE=0.992770
+Completed phase7_seed11_n1000_classical: 1000 updates, best validation MSE=0.917128
+Completed phase7_seed11_n1000_hybrid: 1000 updates, best validation MSE=0.924274
+Completed phase7_seed11_n1000_hybrid_acf: 1000 updates, best validation MSE=0.922786
+Completed phase7_seed11_n500_classical: 1000 updates, best validation MSE=0.917459
+Completed phase7_seed11_n500_hybrid: 1000 updates, best validation MSE=0.923617
+Completed phase7_seed11_n500_hybrid_acf: 1000 updates, best validation MSE=0.922743
+Completed phase7_seed11_n250_classical: 1000 updates, best validation MSE=0.916109
+Completed phase7_seed11_n250_hybrid: 1000 updates, best validation MSE=0.923201
+Completed phase7_seed11_n250_hybrid_acf: 1000 updates, best validation MSE=0.922655
+Completed phase7_seed11_n100_classical: 1000 updates, best validation MSE=0.927105
+Completed phase7_seed11_n100_hybrid: 1000 updates, best validation MSE=0.925507
+Completed phase7_seed11_n100_hybrid_acf: 1000 updates, best validation MSE=0.924371
+Completed phase7_seed22_n1000_classical: 1000 updates, best validation MSE=0.915684
+Completed phase7_seed22_n1000_hybrid: 1000 updates, best validation MSE=0.915852
+Completed phase7_seed22_n1000_hybrid_acf: 1000 updates, best validation MSE=0.924272
+Completed phase7_seed22_n500_classical: 1000 updates, best validation MSE=0.915767
+Completed phase7_seed22_n500_hybrid: 1000 updates, best validation MSE=0.918160
+Completed phase7_seed22_n500_hybrid_acf: 1000 updates, best validation MSE=0.926767
+Completed phase7_seed22_n250_classical: 1000 updates, best validation MSE=0.914771
+Completed phase7_seed22_n250_hybrid: 1000 updates, best validation MSE=0.916179
+Completed phase7_seed22_n250_hybrid_acf: 1000 updates, best validation MSE=0.919456
+Completed phase7_seed22_n100_classical: 1000 updates, best validation MSE=0.916599
+Completed phase7_seed22_n100_hybrid: 1000 updates, best validation MSE=0.917981
+Completed phase7_seed22_n100_hybrid_acf: 1000 updates, best validation MSE=0.926401
+Completed phase7_seed33_n1000_classical: 1000 updates, best validation MSE=0.923405
+Completed phase7_seed33_n1000_hybrid: 1000 updates, best validation MSE=0.937330
+Completed phase7_seed33_n1000_hybrid_acf: 1000 updates, best validation MSE=0.936946
+Completed phase7_seed33_n500_classical: 1000 updates, best validation MSE=0.926290
+Completed phase7_seed33_n500_hybrid: 1000 updates, best validation MSE=0.938598
+Completed phase7_seed33_n500_hybrid_acf: 1000 updates, best validation MSE=0.937836
+Completed phase7_seed33_n250_classical: 1000 updates, best validation MSE=0.928573
+Completed phase7_seed33_n250_hybrid: 1000 updates, best validation MSE=0.938314
+Completed phase7_seed33_n250_hybrid_acf: 1000 updates, best validation MSE=0.937931
+Completed phase7_seed33_n100_classical: 1000 updates, best validation MSE=0.933331
+Completed phase7_seed33_n100_hybrid: 1000 updates, best validation MSE=0.939832
+Completed phase7_seed33_n100_hybrid_acf: 1000 updates, best validation MSE=0.939595
+Verified exact checkpoint/sample reproduction: phase7_seed11_n1000
+Verified exact checkpoint/sample reproduction: phase7_seed11_n500
+Verified exact checkpoint/sample reproduction: phase7_seed11_n250
+Verified exact checkpoint/sample reproduction: phase7_seed11_n100
+Verified exact checkpoint/sample reproduction: phase7_seed22_n1000
+Verified exact checkpoint/sample reproduction: phase7_seed22_n500
+Verified exact checkpoint/sample reproduction: phase7_seed22_n250
+Verified exact checkpoint/sample reproduction: phase7_seed22_n100
+Verified exact checkpoint/sample reproduction: phase7_seed33_n1000
+Verified exact checkpoint/sample reproduction: phase7_seed33_n500
+Verified exact checkpoint/sample reproduction: phase7_seed33_n250
+Verified exact checkpoint/sample reproduction: phase7_seed33_n100

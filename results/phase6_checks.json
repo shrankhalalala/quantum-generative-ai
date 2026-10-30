@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "pairing": "passed",
+  "runs": {
+    "classical": {
+      "checkpoint_checksum": "passed",
+      "sample_checksum": "passed",
+      "checkpoint_sample_reproduction": "exact",
+      "held_out_metric_reproduction": "exact",
+      "generated_sequences": 200
+    },
+    "hybrid": {
+      "checkpoint_checksum": "passed",
+      "sample_checksum": "passed",
+      "checkpoint_sample_reproduction": "exact",
+      "held_out_metric_reproduction": "exact",
+      "generated_sequences": 200
+    },
+    "hybrid_acf": {
+      "checkpoint_checksum": "passed",
+      "sample_checksum": "passed",
+      "checkpoint_sample_reproduction": "exact",
+      "held_out_metric_reproduction": "exact",
+      "generated_sequences": 200
+    }
+  },
+  "guided_joint_gradient_and_update_checks": "passed",
+  "scope": "Functional pilots; not convergence, tuned guidance or quantum advantage"
+}

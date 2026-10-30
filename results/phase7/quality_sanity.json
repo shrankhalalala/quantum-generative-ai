@@ -1,0 +1,16 @@
+{
+  "n_final_runs": 36,
+  "n_generated_sequences": 7200,
+  "generated_population_std_range": [
+    11.38234289152294,
+    12.054052256706308
+  ],
+  "reference_population_std": 0.6683974170626136,
+  "marginal_wasserstein_1_range": [
+    8.460311586333395,
+    9.055689303528403
+  ],
+  "all_acfs_defined": true,
+  "source_snapshot_unchanged_during_execution": true,
+  "interpretation": "Numerically finite but generated amplitude distributions are poorly matched. Do not claim realistic generation, convergence or quantum advantage."
+}

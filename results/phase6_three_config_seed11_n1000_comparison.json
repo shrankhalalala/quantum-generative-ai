@@ -1,0 +1,61 @@
+{
+  "pairing": "passed",
+  "pilot": true,
+  "lambda_status": "User-specified; not automatically tuned",
+  "interpretation": "Pilot diagnostics only",
+  "runs": [
+    "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase6_three_config_seed11_n1000_classical.json",
+    "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase6_three_config_seed11_n1000_hybrid.json",
+    "/Users/shrankhalasingh/Desktop/Sem & Term paper/implementation/quantum-generative-ai/results/phase6_three_config_seed11_n1000_hybrid_acf.json"
+  ],
+  "rows": [
+    {
+      "configuration": "classical",
+      "seed": 11,
+      "subset_size": 1000,
+      "updates": 5,
+      "lambda_acf": 0.0,
+      "parameters": 1816,
+      "validation_noise_mse": 1.01736159324646,
+      "wasserstein_1": 0.11901560051163433,
+      "acf_mae": 0.3783472697085552,
+      "mean_absolute_error": 0.03275676470959524,
+      "std_absolute_error": 0.12764953367090026,
+      "variance_absolute_error": 0.18693564063615203,
+      "training_seconds": 0.04303558298852295,
+      "sampling_seconds": 0.024435000028461218
+    },
+    {
+      "configuration": "hybrid",
+      "seed": 11,
+      "subset_size": 1000,
+      "updates": 5,
+      "lambda_acf": 0.0,
+      "parameters": 1812,
+      "validation_noise_mse": 1.0170261001586913,
+      "wasserstein_1": 0.11682806337931531,
+      "acf_mae": 0.37917885712823357,
+      "mean_absolute_error": 0.01830021848496282,
+      "std_absolute_error": 0.12698133679523627,
+      "variance_absolute_error": 0.18587225495249265,
+      "training_seconds": 8.247861874988303,
+      "sampling_seconds": 7.043996041989885
+    },
+    {
+      "configuration": "hybrid_acf",
+      "seed": 11,
+      "subset_size": 1000,
+      "updates": 5,
+      "lambda_acf": 1.0,
+      "parameters": 1812,
+      "validation_noise_mse": 1.0170305967330933,
+      "wasserstein_1": 0.11682857666165042,
+      "acf_mae": 0.37917655191344773,
+      "mean_absolute_error": 0.018292940234246935,
+      "std_absolute_error": 0.1269844022106683,
+      "variance_absolute_error": 0.18587713129450228,
+      "training_seconds": 8.042638666986022,
+      "sampling_seconds": 7.107002415985335
+    }
+  ]
+}

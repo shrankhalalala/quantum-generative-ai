@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "base_config": {
+    "dataset": {
+      "n_sequences": 1400,
+      "sequence_length": 32,
+      "split_sizes": [
+        1000,
+        200,
+        200
+      ],
+      "subset_sizes": [
+        1000,
+        500,
+        250,
+        100
+      ],
+      "generation_seed": 2026,
+      "split_seed": 2027,
+      "amplitude_range": [
+        0.6,
+        1.2
+      ],
+      "frequency_range": [
+        1.0,
+        3.0
+      ],
+      "harmonic_range": [
+        0.0,
+        0.3
+      ],
+      "noise_std": 0.05,
+      "normalization": "per_subset_global_zscore"
+    },
+    "model": {
+      "quantum_backend": "batched_statevector",
+      "hidden_dim": 16,
+      "timestep_dim": 16,
+      "bottleneck_dim": 4,
+      "n_qubits": 4,
+      "quantum_layers": 2,
+      "rotations": [
+        "RY",
+        "RX"
+      ],
+      "entanglement_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ]
+      ]
+    },
+    "diffusion": {
+      "steps": 100,
+      "beta_start": 0.0001,
+      "beta_end": 0.1
+    },
+    "training": {
+      "learning_rate": 0.001,
+      "batch_size": 16,
+      "epochs": null,
+      "max_steps": null,
+      "pilot_steps": 5,
+      "seeds": [
+        11,
+        22,
+        33
+      ],
+      "device": "cpu"
+    },
+    "evaluation": {
+      "generated_sequences": 200,
+      "max_acf_lag": 10,
+      "ddof": 0,
+      "validation_seed": 2028,
+      "sampling_seed_offset": 10000
+    },
+    "loss": {
+      "objective": "noise",
+      "lambda_acf": 1.0,
+      "max_lag": 10,
+      "epsilon": 1e-12
+    }
+  },
+  "schedule_selection": "Analytic terminal retained signal variance < 0.01; no quality-based schedule search",
+  "terminal_signal_variance": 0.0056187608279287815,
+  "torch_threads": 1,
+  "pilot": {
+    "model": "hybrid",
+    "seed": 11,
+    "subset_size": 1000,
+    "steps": 1000
+  },
+  "budget_candidates": [
+    500,
+    1000
+  ],
+  "budget_rule": "Choose 1000 only if best validation noise MSE improves by at least 0.5% after step 500; otherwise 500",
+  "lambda_candidates": [
+    0.0,
+    0.1,
+    1.0,
+    10.0
+  ],
+  "lambda_rule": "Among positive weights with validation noise MSE <= 1.10 times the zero-weight control, minimize generated-validation ACF MAE; ties prefer smaller lambda",
+  "tuning_seed": 11,
+  "tuning_subset_size": 1000,
+  "tuning_sampling_seed": 2029,
+  "validation_every": 100,
+  "generated_sequences": 200,
+  "final_seeds": [
+    11,
+    22,
+    33
+  ],
+  "final_subset_sizes": [
+    1000,
+    500,
+    250,
+    100
+  ],
+  "final_configurations": [
+    "classical",
+    "hybrid",
+    "hybrid_acf"
+  ],
+  "final_run_count": 36,
+  "checkpoint_selection": "fixed-corruption validation noise MSE",
+  "test_access": "Final quality metrics only, after budget and lambda have been frozen",
+  "budget_limitation": "A cost-bounded study; completion does not imply convergence",
+  "authorization": "User explicitly requested: run phase 7",
+  "execution": "Sequential local CPU runs, ideal statevectors, no hardware/cloud access"
+}
